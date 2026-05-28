@@ -103,9 +103,12 @@
                     </table>
 
                     <!-- Link gestisci schedine (solo OPEN) -->
-                    <div th:if="${matchday.status.name() == 'OPEN'}" class="mb-3">
+                    <div th:if="${matchday.status.name() == 'OPEN'}" class="mb-3 d-flex gap-2 flex-wrap">
                         <a th:href="@{/admin/leagues/{lid}/matchdays/{mid}/slips(lid=${league.id},mid=${matchday.id})}"
                            class="btn btn-success btn-sm">Gestisci schedine</a>
+                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                th:data-path="@{/leagues/{lid}/matchdays/{mid}/bet(lid=${league.id},mid=${matchday.id})}"
+                                onclick="copyMatchdayLink(this)">Copia link schedina</button>
                     </div>
 
                     <!-- Link carica risultati (solo CLOSED) -->
@@ -148,23 +151,11 @@
                           th:action="@{/admin/leagues/{lid}/calendar/{mid}/schedule(lid=${league.id},mid=${matchday.id})}"
                           method="post">
                         <div class="row g-2 align-items-end">
-                            <div class="col-sm-4">
+                            <div class="col-sm-6">
                                 <label class="form-label form-label-sm mb-1">Inizio</label>
                                 <input type="datetime-local" class="form-control form-control-sm"
                                        name="startAt"
                                        th:value="${matchday.startAt != null ? #temporals.format(matchday.startAt, 'yyyy-MM-dd''T''HH:mm') : ''}">
-                            </div>
-                            <div class="col-sm-4">
-                                <label class="form-label form-label-sm mb-1">Fine</label>
-                                <input type="datetime-local" class="form-control form-control-sm"
-                                       name="endAt"
-                                       th:value="${matchday.endAt != null ? #temporals.format(matchday.endAt, 'yyyy-MM-dd''T''HH:mm') : ''}">
-                            </div>
-                            <div class="col-sm-4">
-                                <label class="form-label form-label-sm mb-1">Deadline override</label>
-                                <input type="datetime-local" class="form-control form-control-sm"
-                                       name="deadlineOverride"
-                                       th:value="${matchday.deadlineOverride != null ? #temporals.format(matchday.deadlineOverride, 'yyyy-MM-dd''T''HH:mm') : ''}">
                             </div>
                             <div class="col-12 mt-2">
                                 <button type="submit" class="btn btn-outline-primary btn-sm">Salva date</button>
@@ -174,17 +165,9 @@
 
                     <!-- Date in sola lettura (stati avanzati) -->
                     <div th:if="${matchday.status.name() != 'SCHEDULED'}" class="row g-2 text-muted small">
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             <strong>Inizio:</strong>
                             <span th:text="${matchday.startAt != null ? #temporals.format(matchday.startAt, 'dd/MM/yyyy HH:mm') : '—'}"></span>
-                        </div>
-                        <div class="col-sm-4">
-                            <strong>Fine:</strong>
-                            <span th:text="${matchday.endAt != null ? #temporals.format(matchday.endAt, 'dd/MM/yyyy HH:mm') : '—'}"></span>
-                        </div>
-                        <div class="col-sm-4">
-                            <strong>Deadline:</strong>
-                            <span th:text="${matchday.deadlineOverride != null ? #temporals.format(matchday.deadlineOverride, 'dd/MM/yyyy HH:mm') : '—'}"></span>
                         </div>
                     </div>
 
@@ -230,6 +213,20 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:if="${conflictMatchdays}">
     new bootstrap.Modal(document.getElementById('overwriteModal')).show();
+</script>
+<script>
+    function copyMatchdayLink(btn) {
+        const url = window.location.origin + btn.dataset.path;
+        navigator.clipboard.writeText(url).then(() => {
+            const orig = btn.textContent;
+            btn.textContent = 'Copiato!';
+            btn.classList.replace('btn-outline-secondary', 'btn-success');
+            setTimeout(() => {
+                btn.textContent = orig;
+                btn.classList.replace('btn-success', 'btn-outline-secondary');
+            }, 2000);
+        });
+    }
 </script>
 </body>
 </html>

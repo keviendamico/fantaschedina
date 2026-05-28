@@ -60,7 +60,7 @@
     <div class="list-group" th:unless="${#lists.isEmpty(matchdays)}">
         <a th:each="md : ${matchdays}"
            th:href="@{/leagues/{leagueId}/matchdays/{mdId}(leagueId=${league.id}, mdId=${md.id})}"
-           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+           class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3"
            th:with="slip=${slipsByMatchday[md.id]}">
 
             <div>

@@ -57,7 +57,6 @@ public class MatchdayService {
     }
 
     public LocalDateTime effectiveDeadline(Matchday matchday, int betDeadlineMinutes) {
-        if (matchday.getDeadlineOverride() != null) return matchday.getDeadlineOverride();
         if (matchday.getStartAt() != null) return matchday.getStartAt().minusMinutes(betDeadlineMinutes);
         return null;
     }

@@ -26,13 +26,7 @@ public class Matchday {
 
     private LocalDateTime startAt;
 
-    private LocalDateTime endAt;
-
-    private LocalDateTime deadlineOverride;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private MatchdayStatus status;
-
-    private Integer jackpotSnapshot;
 }

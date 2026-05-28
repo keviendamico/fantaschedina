@@ -58,41 +58,30 @@
             <div th:if="${#lists.isEmpty(slips)}" class="alert alert-info">
                 Nessuna schedina inviata finora.
             </div>
-            <div class="table-responsive" th:unless="${#lists.isEmpty(slips)}">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Giornata</th>
-                            <th class="text-center">Esito</th>
-                            <th class="text-center">Crediti</th>
-                            <th>Data invio</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="slip : ${slips}">
-                            <td th:with="md=${matchdayMap[slip.matchdayId]}">
-                                <span th:if="${md != null}" th:text="'Giornata ' + ${md.number}"></span>
-                                <span th:unless="${md != null}" class="text-muted">—</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge"
-                                      th:classappend="${slip.status.name() == 'WON'}     ? 'bg-success' :
-                                                       (${slip.status.name() == 'LOST'}   ? 'bg-danger'  :
-                                                       (${slip.status.name() == 'VOID'}   ? 'bg-secondary' : 'bg-warning text-dark'))"
-                                      th:text="${slip.status.label}"></span>
-                                <span th:if="${slip.isAutoSubmitted}" class="ms-1 badge bg-light text-dark border">Auto</span>
-                            </td>
-                            <td class="text-center text-danger" th:text="'-' + ${slip.amountCharged}"></td>
-                            <td class="text-muted small"
-                                th:text="${#temporals.format(slip.submittedAt, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td>
-                                <a th:href="@{/leagues/{lid}/slips/{sid}(lid=${league.id},sid=${slip.id})}"
-                                   class="btn btn-outline-secondary btn-sm">Dettaglio</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div th:unless="${#lists.isEmpty(slips)}" class="d-flex flex-column gap-2">
+                <a th:each="slip : ${slips}"
+                   th:href="@{/leagues/{lid}/slips/{sid}(lid=${league.id},sid=${slip.id})}"
+                   class="card card-body text-decoration-none text-dark py-2 px-3"
+                   th:with="md=${matchdayMap[slip.matchdayId]}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold" th:if="${md != null}"
+                                  th:text="'Giornata ' + ${md.number}"></span>
+                            <span th:if="${slip.isAutoSubmitted}"
+                                  class="ms-1 badge bg-warning text-dark">Auto</span>
+                            <div class="text-muted small"
+                                 th:text="${#temporals.format(slip.submittedAt, 'dd/MM/yyyy HH:mm')}"></div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge"
+                                  th:classappend="${slip.status.name() == 'WON'}   ? 'bg-success' :
+                                                   (${slip.status.name() == 'LOST'}  ? 'bg-danger'  :
+                                                   (${slip.status.name() == 'VOID'}  ? 'bg-secondary' : 'bg-warning text-dark'))"
+                                  th:text="${slip.status.label}"></span>
+                            <span class="text-muted">›</span>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
 

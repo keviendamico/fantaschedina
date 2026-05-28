@@ -77,6 +77,10 @@
                         <a th:if="${card.hasClosedMatchday()}"
                            th:href="@{/admin/leagues/{lid}/matchdays/{mid}/results(lid=${card.league.id},mid=${card.currentMatchday.id})}"
                            class="btn btn-sm btn-warning">Carica risultati</a>
+                        <button th:if="${card.hasOpenMatchday()}" type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                th:data-path="@{/leagues/{lid}/matchdays/{mid}/bet(lid=${card.league.id},mid=${card.currentMatchday.id})}"
+                                onclick="copyMatchdayLink(this)">Copia link</button>
                     </div>
 
                 </div>
@@ -103,5 +107,19 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function copyMatchdayLink(btn) {
+        const url = window.location.origin + btn.dataset.path;
+        navigator.clipboard.writeText(url).then(() => {
+            const orig = btn.textContent;
+            btn.textContent = 'Copiato!';
+            btn.classList.replace('btn-outline-secondary', 'btn-success');
+            setTimeout(() => {
+                btn.textContent = orig;
+                btn.classList.replace('btn-success', 'btn-outline-secondary');
+            }, 2000);
+        });
+    }
+</script>
 </body>
 </html>

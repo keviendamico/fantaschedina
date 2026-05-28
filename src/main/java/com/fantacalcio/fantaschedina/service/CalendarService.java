@@ -154,8 +154,6 @@ public class CalendarService {
         }
 
         matchday.setStartAt(request.getStartAt());
-        matchday.setEndAt(request.getEndAt());
-        matchday.setDeadlineOverride(request.getDeadlineOverride());
         matchdayRepository.save(matchday);
 
         // Trigger 1: open immediately if previous is PROCESSED (or absent)

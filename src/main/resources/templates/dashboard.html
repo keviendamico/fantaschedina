@@ -100,15 +100,16 @@
                     </div>
 
                 </div>
-                <div class="card-footer bg-transparent d-flex gap-2">
-                    <!-- CTA principale -->
+                <div class="card-footer bg-transparent d-flex flex-column gap-2">
                     <a th:if="${card.canPlay()}"
                        th:href="@{/leagues/{lid}/matchdays/{mid}/bet(lid=${card.league.id},mid=${card.currentMatchday.id})}"
-                       class="btn btn-primary btn-sm">Gioca ora</a>
-                    <a th:href="@{/leagues/{id}/matchdays(id=${card.league.id})}"
-                       class="btn btn-outline-secondary btn-sm">Giornate</a>
-                    <a th:href="@{/leagues/{id}/history(id=${card.league.id})}"
-                       class="btn btn-outline-secondary btn-sm">Storico</a>
+                       class="btn btn-primary fw-bold py-2">Gioca ora</a>
+                    <div class="d-flex gap-2">
+                        <a th:href="@{/leagues/{id}/matchdays(id=${card.league.id})}"
+                           class="btn btn-outline-secondary btn-sm flex-fill">Giornate</a>
+                        <a th:href="@{/leagues/{id}/history(id=${card.league.id})}"
+                           class="btn btn-outline-secondary btn-sm flex-fill">Storico</a>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,9 +1,7 @@
 package com.fantacalcio.fantaschedina.service;
 
-import com.fantacalcio.fantaschedina.domain.entity.Jackpot;
 import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.domain.enums.MatchdayStatus;
-import com.fantacalcio.fantaschedina.repository.JackpotRepository;
 import com.fantacalcio.fantaschedina.repository.MatchdayRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +17,6 @@ import java.util.List;
 public class MatchdayOpeningService {
 
     private final MatchdayRepository matchdayRepository;
-    private final JackpotRepository jackpotRepository;
     private final MatchdayClosingService matchdayClosingService;
 
     /**
@@ -50,11 +47,9 @@ public class MatchdayOpeningService {
     }
 
     private void open(Matchday matchday) {
-        Jackpot jackpot = jackpotRepository.findByLeagueId(matchday.getLeagueId()).orElseThrow();
         matchday.setStatus(MatchdayStatus.OPEN);
-        matchday.setJackpotSnapshot(jackpot.getCurrentAmount());
         matchdayRepository.save(matchday);
-        log.info("Matchday {} opened (jackpot snapshot={})", matchday.getId(), matchday.getJackpotSnapshot());
+        log.info("Matchday {} opened", matchday.getId());
 
         matchdayClosingService.scheduleCloseJob(matchday);
     }

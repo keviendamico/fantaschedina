@@ -74,7 +74,7 @@ public class BetSlipController {
         model.addAttribute("matchday", matchday);
         model.addAttribute("fixtures", fixtures);
         model.addAttribute("teamNames", teamNames);
-        model.addAttribute("pickSlots", betTemplateService.buildPickSlots(leagueId));
+        model.addAttribute("templates", betTemplateService.findByLeague(leagueId));
         model.addAttribute("myTeam", myTeam);
         model.addAttribute("deadline", deadline);
 

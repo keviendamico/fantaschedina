@@ -32,7 +32,7 @@ public class MatchdayClosingService {
      */
     @Transactional
     public void closeAndAutoSubmit(Long matchdayId) {
-        Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
+        Matchday matchday = matchdayRepository.findByIdForUpdate(matchdayId).orElseThrow();
         if (matchday.getStatus() != MatchdayStatus.OPEN) {
             log.info("closeAndAutoSubmit: matchday {} is not OPEN (status={}), skipping", matchdayId, matchday.getStatus());
             return;
