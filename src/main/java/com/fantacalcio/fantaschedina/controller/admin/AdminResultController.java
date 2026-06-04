@@ -40,14 +40,9 @@ public class AdminResultController {
     public String submit(@PathVariable Long leagueId, @PathVariable Long matchdayId,
                          @ModelAttribute MatchdayResultRequest request,
                          RedirectAttributes redirectAttributes) {
-        try {
-            Matchday matchday = processingService.loadResults(matchdayId, request);
-            redirectAttributes.addFlashAttribute("success",
-                    "Risultati giornata " + matchday.getNumber() + " caricati e schedine elaborate.");
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-            return "redirect:/admin/leagues/" + leagueId + "/matchdays/" + matchdayId + "/results";
-        }
+        Matchday matchday = processingService.loadResults(matchdayId, request);
+        redirectAttributes.addFlashAttribute("success",
+                "Risultati giornata " + matchday.getNumber() + " caricati e schedine elaborate.");
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
     }
 }

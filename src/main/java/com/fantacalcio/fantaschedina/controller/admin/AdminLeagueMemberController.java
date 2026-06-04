@@ -29,12 +29,8 @@ public class AdminLeagueMemberController {
                                @RequestParam int delta,
                                @RequestParam(required = false) String note,
                                RedirectAttributes redirectAttributes) {
-        try {
-            memberService.adjustMemberBalance(membershipId, delta, note);
-            redirectAttributes.addFlashAttribute("success", "Crediti aggiornati.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        memberService.adjustMemberBalance(membershipId, delta, note);
+        redirectAttributes.addFlashAttribute("success", "Crediti aggiornati.");
         return "redirect:/admin/leagues/" + leagueId + "/members";
     }
 

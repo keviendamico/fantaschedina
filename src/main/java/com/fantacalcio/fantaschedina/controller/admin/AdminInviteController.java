@@ -42,26 +42,15 @@ public class AdminInviteController {
             model.addAttribute("invites", inviteService.findAll());
             return "admin/invites";
         }
-
-        try {
-            inviteService.createInvite(inviteRequest.getLeagueId(), inviteRequest.getEmail());
-            redirectAttributes.addFlashAttribute("success",
-                "Invito inviato a " + inviteRequest.getEmail());
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-
+        inviteService.createInvite(inviteRequest.getLeagueId(), inviteRequest.getEmail());
+        redirectAttributes.addFlashAttribute("success", "Invito inviato a " + inviteRequest.getEmail());
         return "redirect:/admin/invites";
     }
 
     @PostMapping("/{id}/revoke")
     public String revokeInvite(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            inviteService.revokeInvite(id);
-            redirectAttributes.addFlashAttribute("success", "Invito revocato");
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        inviteService.revokeInvite(id);
+        redirectAttributes.addFlashAttribute("success", "Invito revocato");
         return "redirect:/admin/invites";
     }
 

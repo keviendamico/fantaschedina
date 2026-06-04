@@ -1,9 +1,9 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
-import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.BetService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -24,21 +24,12 @@ public class UserMatchdayController {
 
     private final MatchdayService matchdayService;
     private final BetService betService;
-    private final UserRepository userRepository;
-
-    private Long userId(Authentication auth) {
-        return userRepository.findByUsername(auth.getName()).orElseThrow().getId();
-    }
+    private final UserService userService;
 
     @GetMapping("/{leagueId}/matchdays")
     public String list(@PathVariable Long leagueId, Authentication authentication, Model model) {
-        Long userId = userId(authentication);
-        League league;
-        try {
-            league = matchdayService.getLeagueForMember(leagueId, userId);
-        } catch (IllegalArgumentException e) {
-            return "redirect:/dashboard";
-        }
+        Long userId = userService.getUserId(authentication.getName());
+        League league = matchdayService.getLeagueForMember(leagueId, userId);
 
         List<Matchday> matchdays = matchdayService.getMatchdays(leagueId);
         Map<Long, LocalDateTime> deadlines = matchdays.stream()
@@ -66,20 +57,10 @@ public class UserMatchdayController {
     @GetMapping("/{leagueId}/matchdays/{matchdayId}")
     public String detail(@PathVariable Long leagueId, @PathVariable Long matchdayId,
                          Authentication authentication, Model model) {
-        Long userId = userId(authentication);
-        League league;
-        try {
-            league = matchdayService.getLeagueForMember(leagueId, userId);
-        } catch (IllegalArgumentException e) {
-            return "redirect:/dashboard";
-        }
+        Long userId = userService.getUserId(authentication.getName());
+        League league = matchdayService.getLeagueForMember(leagueId, userId);
 
-        Matchday matchday;
-        try {
-            matchday = matchdayService.getMatchday(matchdayId, leagueId);
-        } catch (IllegalArgumentException e) {
-            return "redirect:/leagues/" + leagueId + "/matchdays";
-        }
+        Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
 
         List<MatchdayFixture> fixtures = matchdayService.getFixtures(matchdayId);
         Map<Long, String> teamNames = matchdayService.getTeamNames(leagueId);

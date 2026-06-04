@@ -1,6 +1,8 @@
 package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
+import com.fantacalcio.fantaschedina.exception.MatchdayNotFoundException;
+import com.fantacalcio.fantaschedina.exception.NotLeagueMemberException;
 import com.fantacalcio.fantaschedina.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +31,7 @@ public class MatchdayService {
      */
     public League getLeagueForMember(Long leagueId, Long userId) {
         leagueMembershipRepository.findByLeagueIdAndUserId(leagueId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Non sei membro di questa lega"));
+                .orElseThrow(NotLeagueMemberException::new);
         return leagueRepository.findById(leagueId)
                 .orElseThrow(() -> new IllegalArgumentException("Lega non trovata"));
     }
@@ -40,9 +42,9 @@ public class MatchdayService {
 
     public Matchday getMatchday(Long matchdayId, Long leagueId) {
         Matchday matchday = matchdayRepository.findById(matchdayId)
-                .orElseThrow(() -> new IllegalArgumentException("Giornata non trovata"));
+                .orElseThrow(() -> new MatchdayNotFoundException(matchdayId, leagueId));
         if (!matchday.getLeagueId().equals(leagueId)) {
-            throw new IllegalArgumentException("La giornata non appartiene a questa lega");
+            throw new MatchdayNotFoundException(matchdayId, leagueId);
         }
         return matchday;
     }

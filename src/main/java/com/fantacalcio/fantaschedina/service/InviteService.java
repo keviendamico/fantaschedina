@@ -3,6 +3,8 @@ package com.fantacalcio.fantaschedina.service;
 import com.fantacalcio.fantaschedina.domain.entity.*;
 import com.fantacalcio.fantaschedina.domain.enums.*;
 import com.fantacalcio.fantaschedina.exception.InvalidInviteException;
+import com.fantacalcio.fantaschedina.exception.InviteActionException;
+import com.fantacalcio.fantaschedina.exception.RegistrationException;
 import com.fantacalcio.fantaschedina.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -69,13 +71,18 @@ public class InviteService {
     }
 
     public void acceptForExistingUser(String token, Long userId, String fantaTeamName) {
-        Invite invite = findValidInvite(token);
+        Invite invite;
+        try {
+            invite = findValidInvite(token);
+        } catch (InvalidInviteException e) {
+            throw new InviteActionException(e.getMessage());
+        }
 
         if (!userId.equals(invite.getUserId())) {
-            throw new InvalidInviteException("Questo invito non è destinato a te");
+            throw new InviteActionException("Questo invito non è destinato a te");
         }
         if (leagueMembershipRepository.existsByLeagueIdAndUserId(invite.getLeagueId(), userId)) {
-            throw new InvalidInviteException("Sei già membro di questa lega");
+            throw new InviteActionException("Sei già membro di questa lega");
         }
 
         createMembershipAndTeam(invite.getLeagueId(), userId, fantaTeamName);
@@ -86,10 +93,10 @@ public class InviteService {
         Invite invite = findValidInvite(token);
 
         if (userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("Username già in uso");
+            throw new RegistrationException("Username già in uso", token);
         }
         if (userRepository.existsByEmail(invite.getEmail())) {
-            throw new IllegalArgumentException("Esiste già un account con questa email");
+            throw new RegistrationException("Esiste già un account con questa email", token);
         }
 
         User user = User.builder()

@@ -3,10 +3,10 @@ package com.fantacalcio.fantaschedina.controller.admin;
 import com.fantacalcio.fantaschedina.domain.entity.BetSlip;
 import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.dto.BetSlipRequest;
-import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.AdminBetSlipService;
 import com.fantacalcio.fantaschedina.service.LeagueService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -26,7 +26,7 @@ public class AdminBetSlipController {
     private final AdminBetSlipService adminBetSlipService;
     private final LeagueService leagueService;
     private final MatchdayService matchdayService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/matchdays/{matchdayId}/slips")
     public String listSlips(@PathVariable Long leagueId,
@@ -67,15 +67,11 @@ public class AdminBetSlipController {
                            @RequestParam(required = false) String note,
                            @AuthenticationPrincipal UserDetails userDetails,
                            RedirectAttributes redirectAttributes) {
-        Long adminUserId = userRepository.findByUsername(userDetails.getUsername()).orElseThrow().getId();
+        Long adminUserId = userService.getUserId(userDetails.getUsername());
         BetSlip slip = adminBetSlipService.getSlip(slipId);
-
-        try {
-            adminBetSlipService.modifySlip(slipId, adminUserId, request, note);
-            redirectAttributes.addFlashAttribute("success", "Schedina modificata con successo.");
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        adminBetSlipService.modifySlip(slipId, adminUserId, request, note);
+        redirectAttributes.addFlashAttribute("success", "Schedina modificata con successo.");
         return "redirect:/admin/leagues/" + leagueId + "/matchdays/" + slip.getMatchdayId() + "/slips";
     }
+
 }

@@ -2,6 +2,8 @@ package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
 import com.fantacalcio.fantaschedina.domain.enums.*;
+import com.fantacalcio.fantaschedina.exception.BetValidationException;
+import com.fantacalcio.fantaschedina.exception.SlipNotFoundException;
 import com.fantacalcio.fantaschedina.dto.BetPickRequest;
 import com.fantacalcio.fantaschedina.dto.BetSlipRequest;
 import com.fantacalcio.fantaschedina.repository.*;
@@ -34,40 +36,35 @@ public class BetService {
 
     /**
      * Submits a bet slip for the given user on the given matchday.
-     * Throws IllegalArgumentException with a user-facing message on any validation failure.
+     * Throws BetValidationException on any validation failure.
      */
     @Transactional
     public BetSlip submit(Long leagueId, Long matchdayId, Long userId, BetSlipRequest request) {
         League league = leagueRepository.findById(leagueId).orElseThrow();
         Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
 
-        // Matchday must be OPEN
         if (matchday.getStatus() != MatchdayStatus.OPEN) {
-            throw new IllegalArgumentException("La giornata non è aperta alle scommesse.");
+            throw new BetValidationException("La giornata non è aperta alle scommesse.", leagueId, matchdayId);
         }
 
-        // Deadline must not have passed
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
         if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
-            throw new IllegalArgumentException("La scadenza per questa giornata è già passata.");
+            throw new BetValidationException("La scadenza per questa giornata è già passata.", leagueId, matchdayId);
         }
 
-        // Resolve FantaTeam
         LeagueMembership membership = leagueMembershipRepository
                 .findByLeagueIdAndUserId(leagueId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("Non sei membro di questa lega."));
+                .orElseThrow(() -> new BetValidationException("Non sei membro di questa lega.", leagueId, matchdayId));
         FantaTeam fantaTeam = fantaTeamRepository
                 .findByLeagueMembershipId(membership.getId())
-                .orElseThrow(() -> new IllegalArgumentException("Nessuna squadra trovata per il tuo account."));
+                .orElseThrow(() -> new BetValidationException("Nessuna squadra trovata per il tuo account.", leagueId, matchdayId));
 
-        // One slip per matchday
         if (betSlipRepository.existsByFantaTeamIdAndMatchdayId(fantaTeam.getId(), matchdayId)) {
-            throw new IllegalArgumentException("Hai già inviato una schedina per questa giornata.");
+            throw new BetValidationException("Hai già inviato una schedina per questa giornata.", leagueId, matchdayId);
         }
 
-        // Validate picks against BetTemplate
         List<BetTemplate> templates = betTemplateRepository.findByLeagueIdOrderByOrderIndexAsc(leagueId);
-        validatePicks(request.getPicks(), templates, matchdayId);
+        validatePicks(request.getPicks(), templates, leagueId, matchdayId);
 
         // Save BetSlip
         BetSlip slip = BetSlip.builder()
@@ -113,56 +110,53 @@ public class BetService {
         return slip;
     }
 
-    private void validatePicks(List<BetPickRequest> picks, List<BetTemplate> templates, Long matchdayId) {
+    private void validatePicks(List<BetPickRequest> picks, List<BetTemplate> templates,
+                               Long leagueId, Long matchdayId) {
         if (picks == null || picks.isEmpty()) {
-            throw new IllegalArgumentException("La schedina non contiene nessun pronostico.");
+            throw new BetValidationException("La schedina non contiene nessun pronostico.", leagueId, matchdayId);
         }
 
-        // All fixture IDs must belong to this matchday
         Set<Long> validFixtureIds = matchdayFixtureRepository.findByMatchdayId(matchdayId).stream()
                 .map(MatchdayFixture::getId)
                 .collect(Collectors.toSet());
 
         for (BetPickRequest pick : picks) {
             if (!validFixtureIds.contains(pick.getFixtureId())) {
-                throw new IllegalArgumentException("Una partita selezionata non appartiene a questa giornata.");
+                throw new BetValidationException("Una partita selezionata non appartiene a questa giornata.", leagueId, matchdayId);
             }
             Set<String> valid = OutcomeConstants.VALID_OUTCOMES_SET.get(pick.getOutcomeType());
             if (valid == null || !valid.contains(pick.getPickedOutcome())) {
-                throw new IllegalArgumentException("Esito non valido: " + pick.getPickedOutcome());
+                throw new BetValidationException("Esito non valido: " + pick.getPickedOutcome(), leagueId, matchdayId);
             }
         }
 
-        // Each fixture must appear exactly once across all picks
         Set<Long> pickedFixtureIds = picks.stream()
                 .map(BetPickRequest::getFixtureId)
                 .collect(Collectors.toSet());
         if (pickedFixtureIds.size() < picks.size()) {
-            throw new IllegalArgumentException("Ogni partita può essere giocata una sola volta.");
+            throw new BetValidationException("Ogni partita può essere giocata una sola volta.", leagueId, matchdayId);
         }
         if (!pickedFixtureIds.equals(validFixtureIds)) {
-            throw new IllegalArgumentException("Devi giocare tutte le partite della giornata, una per una.");
+            throw new BetValidationException("Devi giocare tutte le partite della giornata, una per una.", leagueId, matchdayId);
         }
 
-        // Count picks per OutcomeType and check against template
         Map<OutcomeType, Long> pickCounts = picks.stream()
                 .collect(Collectors.groupingBy(BetPickRequest::getOutcomeType, Collectors.counting()));
 
         for (BetTemplate template : templates) {
             long actual = pickCounts.getOrDefault(template.getOutcomeType(), 0L);
             if (actual != template.getRequiredCount()) {
-                throw new IllegalArgumentException(
+                throw new BetValidationException(
                         "Pronostici di tipo " + template.getOutcomeType().name() +
-                        ": richiesti " + template.getRequiredCount() + ", inviati " + actual + "."
-                );
+                        ": richiesti " + template.getRequiredCount() + ", inviati " + actual + ".",
+                        leagueId, matchdayId);
             }
         }
 
-        // No extra pick types beyond what the template requires
         for (OutcomeType type : pickCounts.keySet()) {
             boolean inTemplate = templates.stream().anyMatch(t -> t.getOutcomeType() == type);
             if (!inTemplate) {
-                throw new IllegalArgumentException("Tipo di pronostico non previsto: " + type.name());
+                throw new BetValidationException("Tipo di pronostico non previsto: " + type.name(), leagueId, matchdayId);
             }
         }
     }
@@ -182,19 +176,14 @@ public class BetService {
         return betPickRepository.findByBetSlipId(betSlipId);
     }
 
-    /**
-     * Returns the slip only if it belongs to the user's team in the given league.
-     * Returns null if the slip doesn't exist or the user has no team.
-     * Throws IllegalArgumentException if the slip exists but belongs to another team.
-     */
     @Transactional(readOnly = true)
     public BetSlip findSlipForUser(Long slipId, Long leagueId, Long userId) {
-        BetSlip slip = betSlipRepository.findById(slipId).orElse(null);
-        if (slip == null) return null;
+        BetSlip slip = betSlipRepository.findById(slipId)
+                .orElseThrow(() -> new SlipNotFoundException(leagueId));
 
         FantaTeam myTeam = matchdayService.getFantaTeam(leagueId, userId).orElse(null);
         if (myTeam == null || !slip.getFantaTeamId().equals(myTeam.getId())) {
-            throw new IllegalArgumentException("Accesso non autorizzato alla schedina.");
+            throw new SlipNotFoundException(leagueId);
         }
         return slip;
     }

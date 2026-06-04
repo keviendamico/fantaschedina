@@ -84,23 +84,15 @@ public class AdminLeagueController {
 
     @PostMapping("/{id}/activate")
     public String activate(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            leagueService.activate(id);
-            redirectAttributes.addFlashAttribute("success", "Lega attivata");
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        leagueService.activate(id);
+        redirectAttributes.addFlashAttribute("success", "Lega attivata");
         return "redirect:/admin/leagues/" + id;
     }
 
     @PostMapping("/{id}/close")
     public String close(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-        try {
-            leagueService.close(id);
-            redirectAttributes.addFlashAttribute("success", "Lega chiusa");
-        } catch (IllegalStateException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        leagueService.close(id);
+        redirectAttributes.addFlashAttribute("success", "Lega chiusa");
         return "redirect:/admin/leagues/" + id;
     }
 
@@ -108,12 +100,8 @@ public class AdminLeagueController {
     public String adjustJackpot(@PathVariable Long id,
                                 @RequestParam int newAmount,
                                 RedirectAttributes redirectAttributes) {
-        try {
-            leagueService.adjustJackpot(id, newAmount);
-            redirectAttributes.addFlashAttribute("success", "Jackpot aggiornato");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        leagueService.adjustJackpot(id, newAmount);
+        redirectAttributes.addFlashAttribute("success", "Jackpot aggiornato");
         return "redirect:/admin/leagues/" + id;
     }
 

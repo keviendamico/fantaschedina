@@ -1,10 +1,8 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.domain.entity.Invite;
-import com.fantacalcio.fantaschedina.domain.entity.User;
-import com.fantacalcio.fantaschedina.exception.InvalidInviteException;
-import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.InviteService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -19,19 +17,13 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class InviteController {
 
     private final InviteService inviteService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/accept")
     public String acceptInvite(@RequestParam String token,
                                Authentication authentication,
                                Model model) {
-        Invite invite;
-        try {
-            invite = inviteService.findValidInvite(token);
-        } catch (InvalidInviteException e) {
-            model.addAttribute("error", e.getMessage());
-            return "invite-error";
-        }
+        Invite invite = inviteService.findValidInvite(token);
 
         // New user flow
         if (invite.getUserId() == null) {
@@ -43,8 +35,8 @@ public class InviteController {
             return "redirect:/login";
         }
 
-        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
-        if (!currentUser.getId().equals(invite.getUserId())) {
+        Long currentUserId = userService.getUserId(authentication.getName());
+        if (!currentUserId.equals(invite.getUserId())) {
             model.addAttribute("error", "Questo invito non è destinato a te.");
             return "invite-error";
         }
@@ -58,13 +50,10 @@ public class InviteController {
                                 @RequestParam String fantaTeamName,
                                 Authentication authentication,
                                 RedirectAttributes redirectAttributes) {
-        User currentUser = userRepository.findByUsername(authentication.getName()).orElseThrow();
-        try {
-            inviteService.acceptForExistingUser(token, currentUser.getId(), fantaTeamName);
-            redirectAttributes.addFlashAttribute("success", "Sei entrato nella lega!");
-        } catch (InvalidInviteException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
+        Long currentUserId = userService.getUserId(authentication.getName());
+        inviteService.acceptForExistingUser(token, currentUserId, fantaTeamName);
+        redirectAttributes.addFlashAttribute("success", "Sei entrato nella lega!");
         return "redirect:/dashboard";
     }
+
 }

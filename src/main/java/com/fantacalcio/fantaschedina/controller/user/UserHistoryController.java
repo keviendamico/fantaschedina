@@ -1,9 +1,9 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.dto.UserHistoryView;
-import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserHistoryService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -19,17 +19,13 @@ public class UserHistoryController {
 
     private final MatchdayService matchdayService;
     private final UserHistoryService userHistoryService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/{leagueId}/history")
     public String history(@PathVariable Long leagueId, Authentication authentication, Model model) {
-        Long userId = userRepository.findByUsername(authentication.getName()).orElseThrow().getId();
+        Long userId = userService.getUserId(authentication.getName());
 
-        try {
-            model.addAttribute("league", matchdayService.getLeagueForMember(leagueId, userId));
-        } catch (IllegalArgumentException e) {
-            return "redirect:/dashboard";
-        }
+        model.addAttribute("league", matchdayService.getLeagueForMember(leagueId, userId));
 
         UserHistoryView view = userHistoryService.getHistory(leagueId, userId);
         model.addAttribute("membership", view.membership());

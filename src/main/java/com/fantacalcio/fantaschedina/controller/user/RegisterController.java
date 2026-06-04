@@ -18,13 +18,7 @@ public class RegisterController {
 
     @GetMapping("/register")
     public String showRegisterForm(@RequestParam String token, Model model) {
-        try {
-            inviteService.findValidInvite(token);
-        } catch (InvalidInviteException e) {
-            model.addAttribute("error", e.getMessage());
-            return "invite-error";
-        }
-
+        inviteService.findValidInvite(token);
         model.addAttribute("token", token);
         model.addAttribute("registerRequest", new RegisterRequest());
         return "register";
@@ -40,19 +34,12 @@ public class RegisterController {
             return "register";
         }
 
-        try {
-            inviteService.acceptForNewUser(
-                token,
-                registerRequest.getUsername(),
-                registerRequest.getPassword(),
-                registerRequest.getFantaTeamName()
-            );
-        } catch (InvalidInviteException | IllegalArgumentException e) {
-            model.addAttribute("token", token);
-            model.addAttribute("error", e.getMessage());
-            return "register";
-        }
-
+        inviteService.acceptForNewUser(
+            token,
+            registerRequest.getUsername(),
+            registerRequest.getPassword(),
+            registerRequest.getFantaTeamName()
+        );
         return "redirect:/login?registered";
     }
 }

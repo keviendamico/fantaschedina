@@ -1,9 +1,9 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
-import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.BetService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -23,29 +23,16 @@ public class BetSlipDetailController {
 
     private final BetService betService;
     private final MatchdayService matchdayService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/{leagueId}/slips/{slipId}")
     public String detail(@PathVariable Long leagueId, @PathVariable Long slipId,
                          Authentication authentication, Model model) {
-        Long userId = userRepository.findByUsername(authentication.getName()).orElseThrow().getId();
+        Long userId = userService.getUserId(authentication.getName());
 
-        League league;
-        try {
-            league = matchdayService.getLeagueForMember(leagueId, userId);
-        } catch (IllegalArgumentException e) {
-            return "redirect:/dashboard";
-        }
+        League league = matchdayService.getLeagueForMember(leagueId, userId);
 
-        BetSlip slip;
-        try {
-            slip = betService.findSlipForUser(slipId, leagueId, userId);
-        } catch (IllegalArgumentException e) {
-            return "redirect:/leagues/" + leagueId + "/history";
-        }
-        if (slip == null) {
-            return "redirect:/leagues/" + leagueId + "/history";
-        }
+        BetSlip slip = betService.findSlipForUser(slipId, leagueId, userId);
 
         Matchday matchday = matchdayService.getMatchday(slip.getMatchdayId(), leagueId);
         List<BetPick> picks = betService.findPicks(slipId);
