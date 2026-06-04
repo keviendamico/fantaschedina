@@ -28,11 +28,13 @@ public class AdminCalendarController {
     @GetMapping
     public String calendar(@PathVariable Long leagueId, Model model) {
         var matchdays = calendarService.findMatchdaysByLeague(leagueId);
+        int nextNumber = matchdays.isEmpty() ? 1 : matchdays.getLast().getNumber() + 1;
 
         model.addAttribute("league", leagueService.findById(leagueId));
         model.addAttribute("matchdays", matchdays);
         model.addAttribute("fixturesByMatchday", calendarService.findFixturesGroupedByMatchday(matchdays));
         model.addAttribute("teamNames", matchdayService.getTeamNames(leagueId));
+        model.addAttribute("nextMatchdayNumber", nextNumber);
         return "admin/leagues/calendar";
     }
 
@@ -104,6 +106,18 @@ public class AdminCalendarController {
         try {
             calendarService.addFixture(leagueId, matchdayId, homeTeamId, awayTeamId);
             redirectAttributes.addFlashAttribute("success", "Partita aggiunta");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/leagues/" + leagueId + "/calendar";
+    }
+
+    @PostMapping("/matchday/delete-last")
+    public String deleteLastMatchday(@PathVariable Long leagueId,
+                                     RedirectAttributes redirectAttributes) {
+        try {
+            calendarService.deleteLastMatchday(leagueId);
+            redirectAttributes.addFlashAttribute("success", "Giornata eliminata");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }

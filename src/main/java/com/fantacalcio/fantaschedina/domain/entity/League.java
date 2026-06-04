@@ -33,6 +33,8 @@ public class League {
     @Builder.Default
     private Integer betDeadlineMinutes = 5;
 
+    private Integer maxTeams;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private LeagueStatus status;

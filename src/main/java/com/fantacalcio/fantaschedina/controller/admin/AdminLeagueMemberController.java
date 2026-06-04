@@ -20,7 +20,6 @@ public class AdminLeagueMemberController {
     public String members(@PathVariable Long leagueId, Model model) {
         model.addAttribute("league", leagueService.findById(leagueId));
         model.addAttribute("members", memberService.getMembers(leagueId));
-        model.addAttribute("jackpot", memberService.getJackpot(leagueId));
         return "admin/leagues/members";
     }
 
@@ -39,17 +38,4 @@ public class AdminLeagueMemberController {
         return "redirect:/admin/leagues/" + leagueId + "/members";
     }
 
-    @PostMapping("/jackpot/adjust")
-    public String adjustJackpot(@PathVariable Long leagueId,
-                                @RequestParam int newAmount,
-                                @RequestParam(required = false) String note,
-                                RedirectAttributes redirectAttributes) {
-        try {
-            memberService.adjustJackpot(leagueId, newAmount, note);
-            redirectAttributes.addFlashAttribute("success", "Jackpot aggiornato.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
-        }
-        return "redirect:/admin/leagues/" + leagueId + "/members";
-    }
 }

@@ -174,6 +174,8 @@ public class CalendarService {
     }
 
     public void addFixture(Long leagueId, Long matchdayId, Long homeTeamId, Long awayTeamId) {
+        var league = leagueRepository.findById(leagueId)
+            .orElseThrow(() -> new IllegalArgumentException("Lega non trovata"));
         Matchday matchday = matchdayRepository.findById(matchdayId)
             .orElseThrow(() -> new IllegalArgumentException("Giornata non trovata"));
         if (!matchday.getLeagueId().equals(leagueId)) {
@@ -184,6 +186,14 @@ public class CalendarService {
         }
         if (homeTeamId.equals(awayTeamId)) {
             throw new IllegalArgumentException("La squadra di casa e quella in trasferta devono essere diverse");
+        }
+        if (league.getMaxTeams() != null) {
+            int maxFixtures = league.getMaxTeams() / 2;
+            long fixtureCount = matchdayFixtureRepository.countByMatchdayId(matchdayId);
+            if (fixtureCount >= maxFixtures) {
+                throw new IllegalStateException(
+                    "Numero massimo di partite per giornata raggiunto (" + maxFixtures + "/" + maxFixtures + ")");
+            }
         }
         fantaTeamRepository.findById(homeTeamId)
             .filter(t -> t.getLeagueId().equals(leagueId))
@@ -197,6 +207,19 @@ public class CalendarService {
             .homeFantaTeamId(homeTeamId)
             .awayFantaTeamId(awayTeamId)
             .build());
+    }
+
+    public void deleteLastMatchday(Long leagueId) {
+        List<Matchday> matchdays = matchdayRepository.findByLeagueIdOrderByNumberAsc(leagueId);
+        if (matchdays.isEmpty()) {
+            throw new IllegalArgumentException("Nessuna giornata da eliminare");
+        }
+        Matchday last = matchdays.get(matchdays.size() - 1);
+        if (last.getStatus() != MatchdayStatus.SCHEDULED) {
+            throw new IllegalStateException("Solo l'ultima giornata in stato SCHEDULED può essere eliminata");
+        }
+        matchdayFixtureRepository.deleteByMatchdayId(last.getId());
+        matchdayRepository.delete(last);
     }
 
     @Transactional(readOnly = true)

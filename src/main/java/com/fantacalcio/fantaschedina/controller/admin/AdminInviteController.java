@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,9 +26,8 @@ public class AdminInviteController {
 
     @GetMapping
     public String listInvites(Model model) {
+        populateLeagueModel(model);
         model.addAttribute("invites", inviteService.findAll());
-        model.addAttribute("leagues", leagueService.findAll());
-        model.addAttribute("leagueNames", buildLeagueNamesMap());
         model.addAttribute("inviteRequest", new InviteRequest());
         return "admin/invites";
     }
@@ -38,9 +38,8 @@ public class AdminInviteController {
                              Model model,
                              RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            populateLeagueModel(model);
             model.addAttribute("invites", inviteService.findAll());
-            model.addAttribute("leagues", leagueService.findAll());
-            model.addAttribute("leagueNames", buildLeagueNamesMap());
             return "admin/invites";
         }
 
@@ -66,8 +65,11 @@ public class AdminInviteController {
         return "redirect:/admin/invites";
     }
 
-    private Map<Long, String> buildLeagueNamesMap() {
-        return leagueService.findAll().stream()
+    private void populateLeagueModel(Model model) {
+        List<League> leagues = leagueService.findAll();
+        Map<Long, String> leagueNames = leagues.stream()
             .collect(Collectors.toMap(League::getId, l -> l.getName() + " (" + l.getSeason() + ")"));
+        model.addAttribute("leagues", leagues);
+        model.addAttribute("leagueNames", leagueNames);
     }
 }

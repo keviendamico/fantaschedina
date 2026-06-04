@@ -22,91 +22,103 @@
     </div>
 
     <!-- Header -->
-    <div class="mb-4">
-        <a th:href="@{/admin/leagues/{id}(id=${league.id})}" class="text-muted small">← Dettaglio lega</a>
-        <h4 class="mb-0 mt-1" th:text="${league.name} + ' — Componenti'"></h4>
-        <span class="text-muted" th:text="${league.season}"></span>
+    <div class="mb-4 d-flex justify-content-between align-items-end">
+        <div>
+            <a th:href="@{/admin/leagues/{id}(id=${league.id})}" class="text-muted small">← Dettaglio lega</a>
+            <h4 class="mb-0 mt-1" th:text="${league.name} + ' — Componenti'"></h4>
+            <span class="text-muted" th:text="${league.season}"></span>
+        </div>
+        <span class="text-muted small" th:text="${#lists.size(members)} + ' iscritti'"></span>
     </div>
 
-    <div class="row g-4">
-
-        <!-- Jackpot -->
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header fw-semibold">Jackpot</div>
-                <div class="card-body">
-                    <div class="display-6 fw-bold mb-3" th:text="${jackpot.currentAmount} + ' cr'"></div>
-                    <form th:action="@{/admin/leagues/{id}/members/jackpot/adjust(id=${league.id})}" method="post">
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold">Nuovo valore</label>
-                            <div class="input-group input-group-sm">
-                                <input type="number" name="newAmount" class="form-control"
-                                       th:value="${jackpot.currentAmount}" min="0" required>
-                                <span class="input-group-text">cr</span>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-semibold">Nota (opzionale)</label>
-                            <input type="text" name="note" class="form-control form-control-sm"
-                                   placeholder="Motivo della rettifica">
-                        </div>
-                        <button type="submit" class="btn btn-warning btn-sm w-100">Aggiorna jackpot</button>
-                    </form>
-                </div>
+    <!-- Tabella componenti -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(members)}" class="p-3 text-muted fst-italic">
+                Nessun iscritto.
             </div>
+            <table th:unless="${#lists.isEmpty(members)}"
+                   class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Utente</th>
+                        <th>Squadra</th>
+                        <th class="text-end">Crediti</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="row : ${members}">
+                        <td th:text="${row.user().username}"></td>
+                        <td class="text-muted small"
+                            th:text="${row.fantaTeam() != null ? row.fantaTeam().name : '—'}"></td>
+                        <td class="text-end fw-semibold"
+                            th:text="${row.membership().balance} + ' cr'"></td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#adjustModal"
+                                    th:data-membership-id="${row.membership().id}"
+                                    th:data-league-id="${league.id}"
+                                    th:data-username="${row.user().username}"
+                                    th:data-balance="${row.membership().balance}">
+                                Rettifica
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
+    </div>
 
-        <!-- Componenti -->
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
-                    <span>Componenti</span>
-                    <span class="text-muted small" th:text="${#lists.size(members)} + ' iscritti'"></span>
-                </div>
-                <div class="card-body p-0">
-                    <div th:if="${#lists.isEmpty(members)}" class="p-3 text-muted">
-                        Nessun iscritto.
+</div>
+
+<!-- Modal rettifica crediti -->
+<div class="modal fade" id="adjustModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rettifica crediti</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="adjustForm" method="post">
+                <div class="modal-body">
+                    <p class="mb-3">
+                        Utente: <strong id="modalUsername"></strong> &mdash;
+                        Saldo attuale: <strong id="modalBalance"></strong>
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Delta crediti</label>
+                        <div class="input-group">
+                            <input type="number" name="delta" id="modalDelta"
+                                   class="form-control" placeholder="es. +5 o -3" required>
+                            <span class="input-group-text">cr</span>
+                        </div>
+                        <div class="form-text">Valore positivo per aggiungere, negativo per sottrarre.</div>
                     </div>
-                    <table th:unless="${#lists.isEmpty(members)}"
-                           class="table table-sm table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Utente</th>
-                                <th>Squadra</th>
-                                <th class="text-end">Crediti</th>
-                                <th style="width: 260px">Rettifica</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="row : ${members}">
-                                <td th:text="${row.user().username}"></td>
-                                <td class="text-muted small"
-                                    th:text="${row.fantaTeam() != null ? row.fantaTeam().name : '—'}"></td>
-                                <td class="text-end fw-semibold"
-                                    th:text="${row.membership().balance} + ' cr'"></td>
-                                <td>
-                                    <form th:action="@{/admin/leagues/{lid}/members/{mid}/adjust(lid=${league.id},mid=${row.membership().id})}"
-                                          method="post" class="d-flex gap-1 align-items-center">
-                                        <div class="input-group input-group-sm" style="width: 120px">
-                                            <input type="number" name="delta" class="form-control"
-                                                   placeholder="es. +5 o -3" required>
-                                            <span class="input-group-text">cr</span>
-                                        </div>
-                                        <input type="text" name="note" class="form-control form-control-sm"
-                                               placeholder="Nota" style="width: 90px">
-                                        <button type="submit" class="btn btn-outline-primary btn-sm">OK</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Nota (opzionale)</label>
+                        <input type="text" name="note" class="form-control" placeholder="Motivo della rettifica">
+                    </div>
                 </div>
-            </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-primary">Conferma</button>
+                </div>
+            </form>
         </div>
-
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('adjustModal').addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        document.getElementById('modalUsername').textContent = btn.dataset.username;
+        document.getElementById('modalBalance').textContent = btn.dataset.balance + ' cr';
+        document.getElementById('modalDelta').value = '';
+        document.getElementById('adjustForm').action =
+            '/admin/leagues/' + btn.dataset.leagueId + '/members/' + btn.dataset.membershipId + '/adjust';
+    });
+</script>
 </body>
 </html>

@@ -25,4 +25,7 @@ public class LeagueRequest {
     @NotNull(message = "La deadline è obbligatoria")
     @Min(value = 1, message = "La deadline deve essere almeno 1 minuto")
     private Integer betDeadlineMinutes;
+
+    @Min(value = 2, message = "Il numero di squadre deve essere almeno 2")
+    private Integer maxTeams;
 }

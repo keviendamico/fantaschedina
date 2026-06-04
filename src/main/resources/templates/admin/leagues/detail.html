@@ -39,9 +39,11 @@
 
     <div class="row g-4">
 
-        <!-- Info lega -->
-        <div class="col-md-4">
-            <div class="card shadow-sm h-100">
+        <!-- Colonna sinistra: Info + Jackpot -->
+        <div class="col-md-4 d-flex flex-column gap-4">
+
+            <!-- Info lega -->
+            <div class="card shadow-sm">
                 <div class="card-header fw-semibold d-flex justify-content-between align-items-center">
                     <span>Informazioni</span>
                     <div class="d-flex gap-2">
@@ -51,11 +53,6 @@
                               th:action="@{/admin/leagues/{id}/activate(id=${league.id})}" method="post">
                             <button type="submit" class="btn btn-success btn-sm">Attiva</button>
                         </form>
-                        <button th:if="${league.status.name() != 'CLOSED'}"
-                                type="button" class="btn btn-outline-danger btn-sm"
-                                data-bs-toggle="modal" data-bs-target="#closeLeagueModal">
-                            Chiudi lega
-                        </button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -73,9 +70,31 @@
                         <dd class="col-6" th:text="${league.jackpotStart} + ' cr'"></dd>
                         <dt class="col-6">Deadline</dt>
                         <dd class="col-6" th:text="${league.betDeadlineMinutes} + ' min'"></dd>
+                        <dt class="col-6">Max squadre</dt>
+                        <dd class="col-6" th:text="${league.maxTeams != null ? league.maxTeams : '—'}"></dd>
                     </dl>
                 </div>
             </div>
+
+            <!-- Jackpot corrente -->
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Jackpot corrente</div>
+                <div class="card-body">
+                    <div class="display-6 fw-bold mb-3" th:text="${jackpot.currentAmount} + ' cr'"></div>
+                    <form th:action="@{/admin/leagues/{id}/jackpot/adjust(id=${league.id})}" method="post">
+                        <div class="mb-2">
+                            <label class="form-label small fw-semibold">Nuovo valore</label>
+                            <div class="input-group input-group-sm">
+                                <input type="number" name="newAmount" class="form-control"
+                                       th:value="${jackpot.currentAmount}" min="0" required>
+                                <span class="input-group-text">cr</span>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-sm w-100">Aggiorna jackpot</button>
+                    </form>
+                </div>
+            </div>
+
         </div>
 
         <!-- Template schedina -->
@@ -127,9 +146,28 @@
         </div>
 
     </div>
+
+    <!-- Zona di pericolo -->
+    <div th:if="${league.status.name() != 'CLOSED'}" class="row g-4 mt-1">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-danger">
+                <div class="card-header fw-semibold text-danger">Zona di pericolo</div>
+                <div class="card-body">
+                    <p class="small text-muted mb-3">
+                        La lega passerà in stato <strong>CLOSED</strong>. Non sarà più possibile giocare e l'operazione non è reversibile.
+                    </p>
+                    <button type="button" class="btn btn-outline-danger btn-sm w-100"
+                            data-bs-toggle="modal" data-bs-target="#closeLeagueModal">
+                        Chiudi lega
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Modal-->
+<!-- Modal chiudi lega -->
 <div class="modal fade" id="closeLeagueModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
@@ -139,7 +177,7 @@
             </div>
             <div class="modal-body">
                 <p>Sei sicuro di voler chiudere la lega <strong th:text="${league.name}"></strong>?</p>
-                <p class="text-muted small mb-0">Questa operazione non può essere annullata. La lega passerà in stato <strong>CLOSED</strong> e non sarà più possibile giocare.</p>
+                <p class="text-muted small mb-0">Questa operazione non può essere annullata.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>

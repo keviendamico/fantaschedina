@@ -1,14 +1,12 @@
 package com.fantacalcio.fantaschedina.controller.admin;
 
 import com.fantacalcio.fantaschedina.domain.entity.BetSlip;
-import com.fantacalcio.fantaschedina.domain.entity.BetPick;
 import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.dto.BetSlipRequest;
-import com.fantacalcio.fantaschedina.repository.MatchdayFixtureRepository;
-import com.fantacalcio.fantaschedina.repository.MatchdayRepository;
 import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.AdminBetSlipService;
 import com.fantacalcio.fantaschedina.service.LeagueService;
+import com.fantacalcio.fantaschedina.service.MatchdayService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -27,15 +25,14 @@ public class AdminBetSlipController {
 
     private final AdminBetSlipService adminBetSlipService;
     private final LeagueService leagueService;
-    private final MatchdayRepository matchdayRepository;
-    private final MatchdayFixtureRepository matchdayFixtureRepository;
+    private final MatchdayService matchdayService;
     private final UserRepository userRepository;
 
     @GetMapping("/matchdays/{matchdayId}/slips")
     public String listSlips(@PathVariable Long leagueId,
                             @PathVariable Long matchdayId,
                             Model model) {
-        Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
+        Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
         List<BetSlip> slips = adminBetSlipService.getSlipsForMatchday(matchdayId);
         Map<Long, String> teamNames = adminBetSlipService.getTeamNamesForSlips(slips);
 
@@ -51,14 +48,13 @@ public class AdminBetSlipController {
                            @PathVariable Long slipId,
                            Model model) {
         BetSlip slip = adminBetSlipService.getSlip(slipId);
-        Matchday matchday = matchdayRepository.findById(slip.getMatchdayId()).orElseThrow();
-        Map<Long, BetPick> picksByFixture = adminBetSlipService.getPicksByFixture(slipId);
+        Matchday matchday = matchdayService.getMatchday(slip.getMatchdayId(), leagueId);
 
         model.addAttribute("league", leagueService.findById(leagueId));
         model.addAttribute("matchday", matchday);
         model.addAttribute("slip", slip);
         model.addAttribute("pickSlots", adminBetSlipService.getPickSlots(leagueId));
-        model.addAttribute("fixtures", matchdayFixtureRepository.findByMatchdayId(matchday.getId()));
+        model.addAttribute("fixtures", matchdayService.getFixtures(matchday.getId()));
         model.addAttribute("teamNames", adminBetSlipService.getTeamNames(leagueId));
         model.addAttribute("currentPicks", adminBetSlipService.getPicksOrdered(slipId));
         return "admin/leagues/slip-edit";

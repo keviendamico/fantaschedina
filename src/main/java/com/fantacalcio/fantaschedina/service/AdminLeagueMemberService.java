@@ -20,7 +20,6 @@ public class AdminLeagueMemberService {
     private final FantaTeamRepository fantaTeamRepository;
     private final UserRepository userRepository;
     private final CreditTransactionRepository creditTransactionRepository;
-    private final JackpotRepository jackpotRepository;
 
     @Transactional(readOnly = true)
     public List<LeagueMemberRow> getMembers(Long leagueId) {
@@ -33,11 +32,6 @@ public class AdminLeagueMemberService {
                 })
                 .sorted((a, b) -> a.user().getUsername().compareToIgnoreCase(b.user().getUsername()))
                 .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public Jackpot getJackpot(Long leagueId) {
-        return jackpotRepository.findByLeagueId(leagueId).orElseThrow();
     }
 
     @Transactional
@@ -61,14 +55,4 @@ public class AdminLeagueMemberService {
                 .build());
     }
 
-    @Transactional
-    public void adjustJackpot(Long leagueId, int newAmount, String note) {
-        if (newAmount < 0) throw new IllegalArgumentException("Il jackpot non può essere negativo.");
-
-        Jackpot jackpot = jackpotRepository.findByLeagueId(leagueId)
-                .orElseThrow(() -> new IllegalArgumentException("Jackpot non trovato."));
-
-        jackpot.setCurrentAmount(newAmount);
-        jackpotRepository.save(jackpot);
-    }
 }

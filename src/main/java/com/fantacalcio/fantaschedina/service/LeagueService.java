@@ -38,6 +38,7 @@ public class LeagueService {
             .matchdayCost(request.getMatchdayCost())
             .jackpotStart(request.getJackpotStart())
             .betDeadlineMinutes(request.getBetDeadlineMinutes())
+            .maxTeams(request.getMaxTeams())
             .status(LeagueStatus.SETUP)
             .build();
         league = leagueRepository.save(league);
@@ -58,6 +59,7 @@ public class LeagueService {
         league.setMatchdayCost(request.getMatchdayCost());
         league.setJackpotStart(request.getJackpotStart());
         league.setBetDeadlineMinutes(request.getBetDeadlineMinutes());
+        league.setMaxTeams(request.getMaxTeams());
         return leagueRepository.save(league);
     }
 
@@ -77,5 +79,19 @@ public class LeagueService {
         }
         league.setStatus(LeagueStatus.CLOSED);
         leagueRepository.save(league);
+    }
+
+    @Transactional(readOnly = true)
+    public Jackpot getJackpot(Long leagueId) {
+        return jackpotRepository.findByLeagueId(leagueId)
+            .orElseThrow(() -> new IllegalArgumentException("Jackpot non trovato per la lega: " + leagueId));
+    }
+
+    public void adjustJackpot(Long leagueId, int newAmount) {
+        if (newAmount < 0) throw new IllegalArgumentException("Il jackpot non può essere negativo.");
+        Jackpot jackpot = jackpotRepository.findByLeagueId(leagueId)
+            .orElseThrow(() -> new IllegalArgumentException("Jackpot non trovato."));
+        jackpot.setCurrentAmount(newAmount);
+        jackpotRepository.save(jackpot);
     }
 }

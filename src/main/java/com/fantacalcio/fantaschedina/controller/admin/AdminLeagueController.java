@@ -48,7 +48,7 @@ public class AdminLeagueController {
     public String detail(@PathVariable Long id, Model model) {
         model.addAttribute("league", leagueService.findById(id));
         model.addAttribute("betTemplateForm", betTemplateService.buildForm(id));
-        model.addAttribute("betTemplates", betTemplateService.findByLeague(id));
+        model.addAttribute("jackpot", leagueService.getJackpot(id));
         return "admin/leagues/detail";
     }
 
@@ -61,6 +61,7 @@ public class AdminLeagueController {
         request.setMatchdayCost(league.getMatchdayCost());
         request.setJackpotStart(league.getJackpotStart());
         request.setBetDeadlineMinutes(league.getBetDeadlineMinutes());
+        request.setMaxTeams(league.getMaxTeams());
         model.addAttribute("leagueRequest", request);
         model.addAttribute("leagueId", id);
         return "admin/leagues/form";
@@ -98,6 +99,19 @@ public class AdminLeagueController {
             leagueService.close(id);
             redirectAttributes.addFlashAttribute("success", "Lega chiusa");
         } catch (IllegalStateException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/leagues/" + id;
+    }
+
+    @PostMapping("/{id}/jackpot/adjust")
+    public String adjustJackpot(@PathVariable Long id,
+                                @RequestParam int newAmount,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            leagueService.adjustJackpot(id, newAmount);
+            redirectAttributes.addFlashAttribute("success", "Jackpot aggiornato");
+        } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/admin/leagues/" + id;

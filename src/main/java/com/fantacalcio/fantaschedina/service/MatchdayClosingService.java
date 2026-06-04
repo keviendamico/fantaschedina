@@ -85,17 +85,6 @@ public class MatchdayClosingService {
         }
     }
 
-    /**
-     * Removes the Quartz job for the given matchday, if present.
-     */
-    public void unscheduleCloseJob(Long matchdayId) {
-        try {
-            scheduler.deleteJob(jobKey(matchdayId));
-        } catch (SchedulerException e) {
-            log.warn("Failed to unschedule close job for matchday {}: {}", matchdayId, e.getMessage());
-        }
-    }
-
     private static JobKey jobKey(Long matchdayId) {
         return JobKey.jobKey("matchday-close-" + matchdayId, "matchday");
     }

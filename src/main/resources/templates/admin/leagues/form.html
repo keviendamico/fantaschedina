@@ -55,11 +55,20 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="betDeadlineMinutes" class="form-label">Deadline (minuti prima del calcio d'inizio)</label>
-                            <input type="number" class="form-control" id="betDeadlineMinutes"
-                                   th:field="*{betDeadlineMinutes}" min="1" required>
-                            <div class="text-danger small" th:if="${#fields.hasErrors('betDeadlineMinutes')}" th:errors="*{betDeadlineMinutes}"></div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="betDeadlineMinutes" class="form-label">Deadline (minuti prima del calcio d'inizio)</label>
+                                <input type="number" class="form-control" id="betDeadlineMinutes"
+                                       th:field="*{betDeadlineMinutes}" min="1" required>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('betDeadlineMinutes')}" th:errors="*{betDeadlineMinutes}"></div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="maxTeams" class="form-label">Numero massimo di squadre</label>
+                                <input type="number" class="form-control" id="maxTeams"
+                                       th:field="*{maxTeams}" min="2" placeholder="Facoltativo">
+                                <div class="form-text">Limita le partite per giornata a metà di questo valore.</div>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('maxTeams')}" th:errors="*{maxTeams}"></div>
+                            </div>
                         </div>
 
                         <div class="d-flex gap-2">

@@ -62,12 +62,6 @@ public class AdminBetSlipService {
     }
 
     @Transactional(readOnly = true)
-    public Map<Long, BetPick> getPicksByFixture(Long betSlipId) {
-        return betPickRepository.findByBetSlipId(betSlipId).stream()
-                .collect(Collectors.toMap(BetPick::getMatchdayFixtureId, p -> p));
-    }
-
-    @Transactional(readOnly = true)
     public List<BetPick> getPicksOrdered(Long betSlipId) {
         return betPickRepository.findByBetSlipId(betSlipId).stream()
                 .sorted(Comparator.comparingLong(BetPick::getId))
