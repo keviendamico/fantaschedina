@@ -29,6 +29,11 @@ public class RegisterController {
                            @Valid @ModelAttribute RegisterRequest registerRequest,
                            BindingResult result,
                            Model model) {
+        if (!result.hasFieldErrors("confirmPassword")
+                && !registerRequest.getConfirmPassword().equals(registerRequest.getPassword())) {
+            result.rejectValue("confirmPassword", "mismatch", "Le password non coincidono");
+        }
+
         if (result.hasErrors()) {
             model.addAttribute("token", token);
             return "register";

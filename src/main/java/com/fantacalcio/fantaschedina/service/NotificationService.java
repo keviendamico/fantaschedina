@@ -2,6 +2,7 @@ package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.Invite;
 import com.fantacalcio.fantaschedina.domain.entity.League;
+import com.fantacalcio.fantaschedina.domain.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +48,34 @@ public class NotificationService {
             log.info("Invite email sent to {}", invite.getEmail());
         } catch (Exception e) {
             log.error("Failed to send invite email to {}: {}", invite.getEmail(), e.getMessage());
+        }
+    }
+
+    public void sendPasswordResetEmail(User user, String token) {
+        String resetLink = baseUrl + "/reset-password?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(from);
+        message.setTo(user.getEmail());
+        message.setSubject("Reimposta la tua password FantaTotocalcio");
+        message.setText("""
+                Ciao %s!
+
+                Hai richiesto di reimpostare la tua password su FantaTotocalcio.
+
+                Clicca il link per scegliere una nuova password:
+                %s
+
+                Il link scade tra un'ora. Se non hai richiesto tu il reset, ignora questa email.
+
+                FantaTotocalcio
+                """.formatted(user.getUsername(), resetLink));
+
+        try {
+            mailSender.send(message);
+            log.info("Password reset email sent to {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage());
         }
     }
 }

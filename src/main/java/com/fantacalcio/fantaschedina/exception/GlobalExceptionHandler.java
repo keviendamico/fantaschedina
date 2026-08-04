@@ -47,4 +47,10 @@ public class GlobalExceptionHandler {
         redirectAttributes.addFlashAttribute("error", e.getMessage());
         return "redirect:/dashboard";
     }
+
+    @ExceptionHandler(InvalidPasswordResetException.class)
+    public String invalidPasswordReset(InvalidPasswordResetException e, Model model) {
+        model.addAttribute("error", e.getMessage());
+        return "password-reset-error";
+    }
 }
