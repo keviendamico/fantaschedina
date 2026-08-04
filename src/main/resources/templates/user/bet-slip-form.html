@@ -4,29 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Schedina — Giornata ' + ${matchday.number}">Fantaschedina</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title th:text="'Schedina — Giornata ' + ${matchday.number}">FantaTotocalcio</title>
+    <div th:replace="~{fragments/head-assets :: assets}"></div>
     <style>
-        .outcome-btn { min-height: 46px; font-size: 1rem; font-weight: 600; }
         .fixture-card .selected-label {
             font-size: 0.75rem;
             min-height: 1.1rem;
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="ft-page">
 
-<nav class="navbar navbar-dark bg-primary">
-    <div class="container">
-        <a class="navbar-brand fw-bold" href="/">Fantaschedina</a>
-        <div class="d-flex align-items-center gap-2">
-            <span class="text-white small" sec:authentication="name"></span>
-            <form th:action="@{/logout}" method="post" class="m-0">
-                <button type="submit" class="btn btn-outline-light btn-sm">Esci</button>
-            </form>
-        </div>
-    </div>
-</nav>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container py-3 px-3" style="max-width: 600px;">
 
@@ -42,11 +31,11 @@
     </nav>
 
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <h5 class="mb-0 fw-bold" th:text="'Schedina G' + ${matchday.number}"></h5>
+        <h5 class="mb-0 ft-brand-title" th:text="'Schedina G' + ${matchday.number}"></h5>
         <span class="text-muted small" th:if="${myTeam != null}" th:text="${myTeam.name}"></span>
     </div>
 
-    <div class="alert alert-success d-flex justify-content-between align-items-center py-2 mb-3" th:if="${deadline != null}">
+    <div class="ft-ticket-header ft-red mb-3" style="border-radius: var(--ft-radius-sm);" th:if="${deadline != null}">
         <span class="small">Scade: <strong th:text="${#temporals.format(deadline, 'dd/MM HH:mm')}"></strong></span>
         <span id="countdown" class="fw-bold small"></span>
     </div>
@@ -65,71 +54,71 @@
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <div id="picksContainer"></div>
 
-            <!-- Una card per partita -->
-            <div th:each="fixture : ${fixtures}"
-                 class="card mb-3 shadow-sm fixture-card"
+            <!-- Una riga numerata per partita, stile schedina Totocalcio -->
+            <div class="ft-rows mb-3">
+            <div th:each="fixture, fixStat : ${fixtures}"
+                 class="fixture-card"
                  th:data-fixture-id="${fixture.id}">
-                <div class="card-body p-3">
+                <div class="p-3">
 
-                    <div class="fw-semibold mb-3"
-                         th:text="${teamNames[fixture.homeFantaTeamId]} + ' – ' + ${teamNames[fixture.awayFantaTeamId]}">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="ft-row-number" th:text="${fixStat.count}"></span>
+                        <div class="fw-semibold"
+                             th:text="${teamNames[fixture.homeFantaTeamId]} + ' – ' + ${teamNames[fixture.awayFantaTeamId]}">
+                        </div>
                     </div>
 
-                    <!-- Un gruppo di bottoni per ogni tipo di esito previsto dal template -->
+                    <!-- Un gruppo di pallini per ogni tipo di esito previsto dal template -->
                     <div th:each="tmpl, tmplStat : ${templates}"
                          class="outcome-group"
                          th:classappend="${!tmplStat.last} ? ' mb-3' : ''"
                          th:data-type="${tmpl.outcomeType.name()}">
 
-                        <div class="text-muted small mb-1 d-flex justify-content-between">
+                        <div class="text-muted small mb-1 d-flex justify-content-between text-uppercase fw-semibold">
                             <span th:text="${tmpl.outcomeType.label}"></span>
                             <span th:if="${tmpl.outcomeType.name() == 'OVER_UNDER'}"
                                   th:text="'soglia ' + ${tmpl.overUnderThreshold}"></span>
                         </div>
 
-                        <div class="btn-group w-100" role="group">
+                        <th:block th:if="${tmpl.outcomeType.name() == 'RESULT_1X2'}">
+                            <div class="ft-pick-group">
+                                <button type="button" class="ft-pick outcome-btn" data-value="1">1</button>
+                                <button type="button" class="ft-pick outcome-btn" data-value="X">X</button>
+                                <button type="button" class="ft-pick outcome-btn" data-value="2">2</button>
+                            </div>
+                        </th:block>
 
-                            <th:block th:if="${tmpl.outcomeType.name() == 'RESULT_1X2'}">
-                                <button type="button" class="btn btn-outline-primary outcome-btn"
-                                        data-color="primary" data-value="1">1</button>
-                                <button type="button" class="btn btn-outline-primary outcome-btn"
-                                        data-color="primary" data-value="X">X</button>
-                                <button type="button" class="btn btn-outline-primary outcome-btn"
-                                        data-color="primary" data-value="2">2</button>
-                            </th:block>
+                        <th:block th:if="${tmpl.outcomeType.name() == 'DOUBLE_CHANCE'}">
+                            <div class="ft-pick-group">
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="1X">1X</button>
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="12">12</button>
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="X2">X2</button>
+                            </div>
+                        </th:block>
 
-                            <th:block th:if="${tmpl.outcomeType.name() == 'DOUBLE_CHANCE'}">
-                                <button type="button" class="btn btn-outline-success outcome-btn"
-                                        data-color="success" data-value="1X">1X</button>
-                                <button type="button" class="btn btn-outline-success outcome-btn"
-                                        data-color="success" data-value="12">12</button>
-                                <button type="button" class="btn btn-outline-success outcome-btn"
-                                        data-color="success" data-value="X2">X2</button>
-                            </th:block>
+                        <th:block th:if="${tmpl.outcomeType.name() == 'GOAL_NOGOAL'}">
+                            <div class="ft-pick-group">
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="GG">GG</button>
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="NG">NG</button>
+                            </div>
+                        </th:block>
 
-                            <th:block th:if="${tmpl.outcomeType.name() == 'GOAL_NOGOAL'}">
-                                <button type="button" class="btn btn-outline-warning outcome-btn"
-                                        data-color="warning" data-value="GG">GG</button>
-                                <button type="button" class="btn btn-outline-warning outcome-btn"
-                                        data-color="warning" data-value="NG">NG</button>
-                            </th:block>
+                        <th:block th:if="${tmpl.outcomeType.name() == 'OVER_UNDER'}">
+                            <div class="ft-pick-group">
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="OVER">Over</button>
+                                <button type="button" class="ft-pick ft-pick-sm outcome-btn" data-value="UNDER">Under</button>
+                            </div>
+                        </th:block>
 
-                            <th:block th:if="${tmpl.outcomeType.name() == 'OVER_UNDER'}">
-                                <button type="button" class="btn btn-outline-danger outcome-btn"
-                                        data-color="danger" data-value="OVER">Over</button>
-                                <button type="button" class="btn btn-outline-danger outcome-btn"
-                                        data-color="danger" data-value="UNDER">Under</button>
-                            </th:block>
-
-                        </div>
                     </div>
 
                 </div>
             </div>
+            </div>
 
             <div class="d-flex flex-wrap gap-2 mb-3" id="req-bar">
                 <span th:each="tmpl : ${templates}"
-                      class="badge bg-secondary px-3 py-2 req-badge"
+                      class="badge badge-ft-cream px-3 py-2 req-badge"
                       th:data-type="${tmpl.outcomeType.name()}"
                       th:data-required="${tmpl.requiredCount}"
                       style="font-size:0.85rem">
@@ -139,7 +128,7 @@
             </div>
 
             <div class="d-grid mb-5">
-                <button type="submit" id="submitBtn" class="btn btn-primary btn-lg py-3 fw-bold" disabled>
+                <button type="submit" id="submitBtn" class="btn btn-ft-green btn-lg py-3" disabled>
                     Invia schedina
                 </button>
             </div>
@@ -155,7 +144,7 @@
     const cdEl = document.getElementById('countdown');
     function updateCountdown() {
         const diff = deadlineMs - Date.now();
-        if (diff <= 0) { cdEl.textContent = 'Scaduta'; cdEl.classList.add('text-danger'); return; }
+        if (diff <= 0) { cdEl.textContent = 'Scaduta'; return; }
         const h = Math.floor(diff / 3600000);
         const m = Math.floor((diff % 3600000) / 60000);
         const s = Math.floor((diff % 60000) / 1000);
@@ -196,13 +185,13 @@
             const req = parseInt(b.dataset.required);
             const cur = counts[type] || 0;
             b.querySelector('.req-current').textContent = cur;
-            b.classList.remove('bg-secondary', 'bg-success', 'bg-danger');
+            b.classList.remove('badge-ft-cream', 'badge-ft-green', 'badge-ft-red');
             if (cur === req) {
-                b.classList.add('bg-success');
+                b.classList.add('badge-ft-green');
             } else if (cur > req) {
-                b.classList.add('bg-danger');
+                b.classList.add('badge-ft-red');
             } else {
-                b.classList.add('bg-secondary');
+                b.classList.add('badge-ft-cream');
             }
         });
         document.getElementById('submitBtn').disabled = !isComplete();
@@ -214,11 +203,7 @@
         const prevType = selections[fid].type;
         const prevGroup = card.querySelector(`.outcome-group[data-type="${prevType}"]`);
         if (prevGroup) {
-            prevGroup.querySelectorAll('.outcome-btn').forEach(b => {
-                const color = b.dataset.color;
-                b.classList.remove(`btn-${color}`);
-                b.classList.add(`btn-outline-${color}`);
-            });
+            prevGroup.querySelectorAll('.outcome-btn').forEach(b => b.classList.remove('selected'));
         }
         delete selections[fid];
     }
@@ -232,14 +217,12 @@
             group.querySelectorAll('.outcome-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const value = btn.dataset.value;
-                    const color = btn.dataset.color;
 
                     // Click on already-selected button → deselect
                     if (selections[fixtureId] &&
                         selections[fixtureId].type === outcomeType &&
                         selections[fixtureId].value === value) {
-                        btn.classList.remove(`btn-${color}`);
-                        btn.classList.add(`btn-outline-${color}`);
+                        btn.classList.remove('selected');
                         btn.blur();
                         delete selections[fixtureId];
                         updateUI();
@@ -250,15 +233,10 @@
                     clearFixtureSelection(card);
 
                     // Deselect siblings in same group (visual only, already cleared above)
-                    group.querySelectorAll('.outcome-btn').forEach(b => {
-                        const c = b.dataset.color;
-                        b.classList.remove(`btn-${c}`);
-                        b.classList.add(`btn-outline-${c}`);
-                    });
+                    group.querySelectorAll('.outcome-btn').forEach(b => b.classList.remove('selected'));
 
                     // Select this button
-                    btn.classList.remove(`btn-outline-${color}`);
-                    btn.classList.add(`btn-${color}`);
+                    btn.classList.add('selected');
                     selections[fixtureId] = { type: outcomeType, value };
 
                     updateUI();

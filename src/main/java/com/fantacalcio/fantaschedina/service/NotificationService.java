@@ -16,7 +16,7 @@ public class NotificationService {
 
     private final JavaMailSender mailSender;
 
-    @Value("${app.mail.from:noreply@fantaschedina.dev}")
+    @Value("${app.mail.from:noreply@fantatotocalcio.it}")
     private String from;
 
     @Value("${app.base-url:http://localhost:8080}")
@@ -32,14 +32,14 @@ public class NotificationService {
         message.setText("""
                 Ciao!
 
-                Sei stato invitato a unirti alla lega "%s" su Fantaschedina.
+                Sei stato invitato a unirti alla lega "%s" su FantaTotocalcio.
 
                 Clicca il link per accettare l'invito:
                 %s
 
                 Il link scade il %s.
 
-                Fantaschedina
+                FantaTotocalcio
                 """.formatted(league.getName(), inviteLink, invite.getExpiresAt().toLocalDate()));
 
         try {

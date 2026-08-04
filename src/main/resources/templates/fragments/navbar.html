@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="it" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<nav th:fragment="navbar" class="navbar navbar-dark ft-navbar">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" th:href="@{/dashboard}">
+            <img th:src="@{/images/logo.png}" alt="FantaTotocalcio" class="ft-logo">
+        </a>
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-white small d-none d-sm-inline" sec:authentication="name"></span>
+            <form th:action="@{/logout}" method="post" class="m-0">
+                <button type="submit" class="btn btn-outline-light btn-sm">Esci</button>
+            </form>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

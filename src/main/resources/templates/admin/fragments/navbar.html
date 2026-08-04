@@ -2,9 +2,12 @@
 <html lang="it" xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <body>
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark bg-dark">
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-dark ft-navbar">
     <div class="container">
-        <a class="navbar-brand fw-bold" href="/admin/dashboard">Fantaschedina Admin</a>
+        <a class="navbar-brand d-flex align-items-center gap-2" href="/admin/dashboard">
+            <img src="/images/logo.png" alt="FantaTotocalcio" class="ft-logo">
+            <span class="badge badge-ft-red">Admin</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
             <span class="navbar-toggler-icon"></span>
         </button>
