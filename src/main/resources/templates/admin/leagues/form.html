@@ -48,20 +48,30 @@
                                 <div class="text-danger small" th:if="${#fields.hasErrors('matchdayCost')}" th:errors="*{matchdayCost}"></div>
                             </div>
                             <div class="col-md-6 mb-3">
+                                <label for="totalMatchdays" class="form-label">Numero giornate stagione</label>
+                                <input type="number" class="form-control" id="totalMatchdays"
+                                       th:field="*{totalMatchdays}" min="1" required>
+                                <div class="form-text">Usato per calcolare il deposito iniziale dei membri (costo × giornate).</div>
+                                <div class="text-danger small" th:if="${#fields.hasErrors('totalMatchdays')}" th:errors="*{totalMatchdays}"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
                                 <label for="jackpotStart" class="form-label">Jackpot iniziale</label>
                                 <input type="number" class="form-control" id="jackpotStart"
                                        th:field="*{jackpotStart}" min="0" required>
                                 <div class="text-danger small" th:if="${#fields.hasErrors('jackpotStart')}" th:errors="*{jackpotStart}"></div>
                             </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="betDeadlineMinutes" class="form-label">Deadline (minuti prima del calcio d'inizio)</label>
                                 <input type="number" class="form-control" id="betDeadlineMinutes"
                                        th:field="*{betDeadlineMinutes}" min="1" required>
                                 <div class="text-danger small" th:if="${#fields.hasErrors('betDeadlineMinutes')}" th:errors="*{betDeadlineMinutes}"></div>
                             </div>
+                        </div>
+
+                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="maxTeams" class="form-label">Numero massimo di squadre</label>
                                 <input type="number" class="form-control" id="maxTeams"

@@ -1,0 +1,1 @@
+ALTER TABLE leagues ADD COLUMN total_matchdays INTEGER NOT NULL DEFAULT 38;

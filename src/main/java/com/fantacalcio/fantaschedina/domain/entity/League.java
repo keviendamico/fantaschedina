@@ -26,6 +26,9 @@ public class League {
     private Integer matchdayCost;
 
     @Column(nullable = false)
+    private Integer totalMatchdays;
+
+    @Column(nullable = false)
     @Builder.Default
     private Integer jackpotStart = 0;
 

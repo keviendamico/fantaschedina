@@ -25,7 +25,6 @@ public class InviteService {
     private final LeagueRepository leagueRepository;
     private final LeagueMembershipRepository leagueMembershipRepository;
     private final FantaTeamRepository fantaTeamRepository;
-    private final MatchdayRepository matchdayRepository;
     private final CreditTransactionRepository creditTransactionRepository;
     private final NotificationService notificationService;
     private final PasswordEncoder passwordEncoder;
@@ -115,10 +114,7 @@ public class InviteService {
     private void createMembershipAndTeam(Long leagueId, Long userId, String fantaTeamName) {
         League league = leagueRepository.findById(leagueId).orElseThrow();
 
-        long remaining = matchdayRepository.countByLeagueIdAndStatusIn(
-            leagueId, List.of(MatchdayStatus.SCHEDULED, MatchdayStatus.OPEN)
-        );
-        int initialBalance = league.getMatchdayCost() * (int) remaining;
+        int initialBalance = league.getMatchdayCost() * league.getTotalMatchdays();
 
         LeagueMembership membership = LeagueMembership.builder()
             .leagueId(leagueId)

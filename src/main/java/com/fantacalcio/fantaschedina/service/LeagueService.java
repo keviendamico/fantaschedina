@@ -36,6 +36,7 @@ public class LeagueService {
             .name(request.getName())
             .season(request.getSeason())
             .matchdayCost(request.getMatchdayCost())
+            .totalMatchdays(request.getTotalMatchdays())
             .jackpotStart(request.getJackpotStart())
             .betDeadlineMinutes(request.getBetDeadlineMinutes())
             .maxTeams(request.getMaxTeams())
@@ -57,6 +58,7 @@ public class LeagueService {
         league.setName(request.getName());
         league.setSeason(request.getSeason());
         league.setMatchdayCost(request.getMatchdayCost());
+        league.setTotalMatchdays(request.getTotalMatchdays());
         league.setJackpotStart(request.getJackpotStart());
         league.setBetDeadlineMinutes(request.getBetDeadlineMinutes());
         league.setMaxTeams(request.getMaxTeams());

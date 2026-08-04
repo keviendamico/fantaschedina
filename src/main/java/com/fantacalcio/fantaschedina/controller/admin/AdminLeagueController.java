@@ -59,6 +59,7 @@ public class AdminLeagueController {
         request.setName(league.getName());
         request.setSeason(league.getSeason());
         request.setMatchdayCost(league.getMatchdayCost());
+        request.setTotalMatchdays(league.getTotalMatchdays());
         request.setJackpotStart(league.getJackpotStart());
         request.setBetDeadlineMinutes(league.getBetDeadlineMinutes());
         request.setMaxTeams(league.getMaxTeams());

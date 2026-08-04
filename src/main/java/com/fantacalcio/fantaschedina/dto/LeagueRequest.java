@@ -18,6 +18,10 @@ public class LeagueRequest {
     @Min(value = 1, message = "Il costo deve essere almeno 1")
     private Integer matchdayCost;
 
+    @NotNull(message = "Il numero di giornate è obbligatorio")
+    @Min(value = 1, message = "Il numero di giornate deve essere almeno 1")
+    private Integer totalMatchdays;
+
     @NotNull(message = "Il jackpot iniziale è obbligatorio")
     @Min(value = 0, message = "Il jackpot iniziale non può essere negativo")
     private Integer jackpotStart;
