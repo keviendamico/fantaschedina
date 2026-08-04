@@ -81,6 +81,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="adjustForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
                 <div class="modal-body">
                     <p class="mb-3">
                         Utente: <strong id="modalUsername"></strong> &mdash;
