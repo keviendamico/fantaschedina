@@ -108,6 +108,35 @@
             </form>
         </div>
     </div>
+
+    <!-- Audit log -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-header fw-semibold">Storico modifiche admin</div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(auditLog)}" class="p-3 text-muted">Nessuna modifica registrata.</div>
+            <table th:unless="${#lists.isEmpty(auditLog)}"
+                   class="table table-sm table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Data</th>
+                        <th>Tipo</th>
+                        <th class="text-end">Importo</th>
+                        <th>Nota</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="log : ${auditLog}">
+                        <td class="text-muted small"
+                            th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${log.type.label}"></td>
+                        <td class="text-end" th:text="${log.amount != null ? log.amount + ' cr' : '—'}"></td>
+                        <td class="text-muted small" th:text="${log.note != null ? log.note : '—'}"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

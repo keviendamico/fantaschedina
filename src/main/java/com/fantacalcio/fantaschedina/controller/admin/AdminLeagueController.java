@@ -4,8 +4,11 @@ import com.fantacalcio.fantaschedina.dto.BetTemplateForm;
 import com.fantacalcio.fantaschedina.dto.LeagueRequest;
 import com.fantacalcio.fantaschedina.service.BetTemplateService;
 import com.fantacalcio.fantaschedina.service.LeagueService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -19,10 +22,11 @@ public class AdminLeagueController {
 
     private final LeagueService leagueService;
     private final BetTemplateService betTemplateService;
+    private final UserService userService;
 
     @GetMapping
-    public String list(Model model) {
-        model.addAttribute("leagues", leagueService.findAll());
+    public String list(@AuthenticationPrincipal UserDetails user, Model model) {
+        model.addAttribute("leagues", leagueService.findAllForAdmin(userService.getUserId(user.getUsername())));
         return "admin/leagues/list";
     }
 
@@ -35,26 +39,31 @@ public class AdminLeagueController {
     @PostMapping
     public String create(@Valid @ModelAttribute LeagueRequest leagueRequest,
                          BindingResult result,
+                         @AuthenticationPrincipal UserDetails user,
                          RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             return "admin/leagues/form";
         }
-        var league = leagueService.create(leagueRequest);
+        var league = leagueService.create(leagueRequest, userService.getUserId(user.getUsername()));
         redirectAttributes.addFlashAttribute("success", "Lega creata con successo");
         return "redirect:/admin/leagues/" + league.getId();
     }
 
     @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
-        model.addAttribute("league", leagueService.findById(id));
+    public String detail(@PathVariable Long id,
+                         @AuthenticationPrincipal UserDetails user,
+                         Model model) {
+        model.addAttribute("league", leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername())));
         model.addAttribute("betTemplateForm", betTemplateService.buildForm(id));
         model.addAttribute("jackpot", leagueService.getJackpot(id));
         return "admin/leagues/detail";
     }
 
     @GetMapping("/{id}/edit")
-    public String editForm(@PathVariable Long id, Model model) {
-        var league = leagueService.findById(id);
+    public String editForm(@PathVariable Long id,
+                           @AuthenticationPrincipal UserDetails user,
+                           Model model) {
+        var league = leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         var request = new LeagueRequest();
         request.setName(league.getName());
         request.setSeason(league.getSeason());
@@ -72,26 +81,34 @@ public class AdminLeagueController {
     public String update(@PathVariable Long id,
                          @Valid @ModelAttribute LeagueRequest leagueRequest,
                          BindingResult result,
+                         @AuthenticationPrincipal UserDetails user,
                          Model model,
                          RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             model.addAttribute("leagueId", id);
             return "admin/leagues/form";
         }
+        leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.update(id, leagueRequest);
         redirectAttributes.addFlashAttribute("success", "Lega aggiornata");
         return "redirect:/admin/leagues/" + id;
     }
 
     @PostMapping("/{id}/activate")
-    public String activate(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String activate(@PathVariable Long id,
+                           @AuthenticationPrincipal UserDetails user,
+                           RedirectAttributes redirectAttributes) {
+        leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.activate(id);
         redirectAttributes.addFlashAttribute("success", "Lega attivata");
         return "redirect:/admin/leagues/" + id;
     }
 
     @PostMapping("/{id}/close")
-    public String close(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String close(@PathVariable Long id,
+                        @AuthenticationPrincipal UserDetails user,
+                        RedirectAttributes redirectAttributes) {
+        leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.close(id);
         redirectAttributes.addFlashAttribute("success", "Lega chiusa");
         return "redirect:/admin/leagues/" + id;
@@ -100,7 +117,9 @@ public class AdminLeagueController {
     @PostMapping("/{id}/jackpot/adjust")
     public String adjustJackpot(@PathVariable Long id,
                                 @RequestParam int newAmount,
+                                @AuthenticationPrincipal UserDetails user,
                                 RedirectAttributes redirectAttributes) {
+        leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.adjustJackpot(id, newAmount);
         redirectAttributes.addFlashAttribute("success", "Jackpot aggiornato");
         return "redirect:/admin/leagues/" + id;
@@ -109,7 +128,9 @@ public class AdminLeagueController {
     @PostMapping("/{id}/bet-template")
     public String saveBetTemplate(@PathVariable Long id,
                                   @ModelAttribute BetTemplateForm betTemplateForm,
+                                  @AuthenticationPrincipal UserDetails user,
                                   RedirectAttributes redirectAttributes) {
+        leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         betTemplateService.save(id, betTemplateForm);
         redirectAttributes.addFlashAttribute("success", "Template schedina salvato");
         return "redirect:/admin/leagues/" + id;

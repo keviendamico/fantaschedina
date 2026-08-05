@@ -6,7 +6,10 @@ import com.fantacalcio.fantaschedina.dto.MatchdayResultRequest;
 import com.fantacalcio.fantaschedina.service.LeagueService;
 import com.fantacalcio.fantaschedina.service.MatchdayProcessingService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
+import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +23,14 @@ public class AdminResultController {
     private final LeagueService leagueService;
     private final MatchdayService matchdayService;
     private final MatchdayProcessingService processingService;
+    private final UserService userService;
 
     @GetMapping
-    public String form(@PathVariable Long leagueId, @PathVariable Long matchdayId, Model model) {
+    public String form(@PathVariable Long leagueId,
+                       @PathVariable Long matchdayId,
+                       @AuthenticationPrincipal UserDetails user,
+                       Model model) {
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
 
         if (matchday.getStatus() != MatchdayStatus.CLOSED) {
@@ -37,9 +45,12 @@ public class AdminResultController {
     }
 
     @PostMapping
-    public String submit(@PathVariable Long leagueId, @PathVariable Long matchdayId,
+    public String submit(@PathVariable Long leagueId,
+                         @PathVariable Long matchdayId,
+                         @AuthenticationPrincipal UserDetails user,
                          @ModelAttribute MatchdayResultRequest request,
                          RedirectAttributes redirectAttributes) {
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = processingService.loadResults(matchdayId, request);
         redirectAttributes.addFlashAttribute("success",
                 "Risultati giornata " + matchday.getNumber() + " caricati e schedine elaborate.");

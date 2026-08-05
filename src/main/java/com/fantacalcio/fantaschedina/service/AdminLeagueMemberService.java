@@ -1,6 +1,7 @@
 package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
+import com.fantacalcio.fantaschedina.domain.enums.AdminLogType;
 import com.fantacalcio.fantaschedina.domain.enums.TransactionType;
 import com.fantacalcio.fantaschedina.dto.LeagueMemberRow;
 import com.fantacalcio.fantaschedina.repository.*;
@@ -20,6 +21,7 @@ public class AdminLeagueMemberService {
     private final FantaTeamRepository fantaTeamRepository;
     private final UserRepository userRepository;
     private final CreditTransactionRepository creditTransactionRepository;
+    private final LeagueAuditLogRepository leagueAuditLogRepository;
 
     @Transactional(readOnly = true)
     public List<LeagueMemberRow> getMembers(Long leagueId) {
@@ -45,14 +47,29 @@ public class AdminLeagueMemberService {
         membership.setBalance(newBalance);
         leagueMembershipRepository.save(membership);
 
+        String resolvedNote = note != null && !note.isBlank() ? note : "Rettifica manuale admin";
+
         creditTransactionRepository.save(CreditTransaction.builder()
                 .leagueMembershipId(membershipId)
                 .type(TransactionType.ADMIN_ADJUST)
                 .amount(delta)
                 .balanceAfter(newBalance)
                 .createdAt(LocalDateTime.now())
-                .note(note != null && !note.isBlank() ? note : "Rettifica manuale admin")
+                .note(resolvedNote)
+                .build());
+
+        leagueAuditLogRepository.save(LeagueAuditLog.builder()
+                .leagueId(membership.getLeagueId())
+                .type(AdminLogType.CREDIT_ADJUST)
+                .targetMembershipId(membershipId)
+                .amount(delta)
+                .note(resolvedNote)
+                .createdAt(LocalDateTime.now())
                 .build());
     }
 
+    @Transactional(readOnly = true)
+    public List<LeagueAuditLog> getAuditLog(Long leagueId) {
+        return leagueAuditLogRepository.findByLeagueIdOrderByCreatedAtDesc(leagueId);
+    }
 }

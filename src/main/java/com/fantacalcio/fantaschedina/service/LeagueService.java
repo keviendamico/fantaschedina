@@ -2,14 +2,18 @@ package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.Jackpot;
 import com.fantacalcio.fantaschedina.domain.entity.League;
+import com.fantacalcio.fantaschedina.domain.entity.LeagueAuditLog;
+import com.fantacalcio.fantaschedina.domain.enums.AdminLogType;
 import com.fantacalcio.fantaschedina.domain.enums.LeagueStatus;
 import com.fantacalcio.fantaschedina.dto.LeagueRequest;
 import com.fantacalcio.fantaschedina.repository.JackpotRepository;
+import com.fantacalcio.fantaschedina.repository.LeagueAuditLogRepository;
 import com.fantacalcio.fantaschedina.repository.LeagueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -19,10 +23,16 @@ public class LeagueService {
 
     private final LeagueRepository leagueRepository;
     private final JackpotRepository jackpotRepository;
+    private final LeagueAuditLogRepository leagueAuditLogRepository;
 
     @Transactional(readOnly = true)
     public List<League> findAll() {
         return leagueRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public List<League> findAllForAdmin(Long adminUserId) {
+        return leagueRepository.findByCreatedByUserId(adminUserId);
     }
 
     @Transactional(readOnly = true)
@@ -31,7 +41,16 @@ public class LeagueService {
             .orElseThrow(() -> new IllegalArgumentException("Lega non trovata: " + id));
     }
 
-    public League create(LeagueRequest request) {
+    @Transactional(readOnly = true)
+    public League findByIdForAdmin(Long id, Long adminUserId) {
+        League league = findById(id);
+        if (!league.getCreatedByUserId().equals(adminUserId)) {
+            throw new IllegalArgumentException("Non hai accesso a questa lega.");
+        }
+        return league;
+    }
+
+    public League create(LeagueRequest request, Long adminUserId) {
         League league = League.builder()
             .name(request.getName())
             .season(request.getSeason())
@@ -41,6 +60,7 @@ public class LeagueService {
             .betDeadlineMinutes(request.getBetDeadlineMinutes())
             .maxTeams(request.getMaxTeams())
             .status(LeagueStatus.SETUP)
+            .createdByUserId(adminUserId)
             .build();
         league = leagueRepository.save(league);
 
@@ -95,5 +115,12 @@ public class LeagueService {
             .orElseThrow(() -> new IllegalArgumentException("Jackpot non trovato."));
         jackpot.setCurrentAmount(newAmount);
         jackpotRepository.save(jackpot);
+
+        leagueAuditLogRepository.save(LeagueAuditLog.builder()
+            .leagueId(leagueId)
+            .type(AdminLogType.JACKPOT_ADJUST)
+            .amount(newAmount)
+            .createdAt(LocalDateTime.now())
+            .build());
     }
 }

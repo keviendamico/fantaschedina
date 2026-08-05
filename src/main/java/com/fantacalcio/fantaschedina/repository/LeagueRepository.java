@@ -9,4 +9,6 @@ import java.util.List;
 public interface LeagueRepository extends JpaRepository<League, Long> {
 
     List<League> findByStatus(LeagueStatus status);
+
+    List<League> findByCreatedByUserId(Long createdByUserId);
 }
