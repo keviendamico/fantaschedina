@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.dto.BetPickRequest;
 import com.fantacalcio.fantaschedina.dto.BetSlipRequest;
 import com.fantacalcio.fantaschedina.dto.PickSlot;
 import com.fantacalcio.fantaschedina.repository.*;
+import com.fantacalcio.fantaschedina.util.AppClock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,7 +79,7 @@ public class AdminBetSlipService {
             throw new IllegalStateException("La giornata non è più aperta: impossibile modificare la schedina.");
         }
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
-        if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
+        if (deadline != null && AppClock.now().isAfter(deadline)) {
             throw new IllegalStateException("La deadline è già passata: impossibile modificare la schedina.");
         }
 

@@ -6,13 +6,13 @@ import com.fantacalcio.fantaschedina.domain.enums.MatchdayStatus;
 import com.fantacalcio.fantaschedina.repository.LeagueRepository;
 import com.fantacalcio.fantaschedina.repository.MatchdayRepository;
 import com.fantacalcio.fantaschedina.scheduler.MatchdayCloseJob;
+import com.fantacalcio.fantaschedina.util.AppClock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.ZoneId;
 import java.util.Date;
 
 @Slf4j
@@ -32,6 +32,7 @@ public class MatchdayClosingService {
      */
     @Transactional
     public void closeAndAutoSubmit(Long matchdayId) {
+        log.debug("closeAndAutoSubmit: called for matchday {}", matchdayId);
         Matchday matchday = matchdayRepository.findByIdForUpdate(matchdayId).orElseThrow();
         if (matchday.getStatus() != MatchdayStatus.OPEN) {
             log.info("closeAndAutoSubmit: matchday {} is not OPEN (status={}), skipping", matchdayId, matchday.getStatus());
@@ -41,7 +42,9 @@ public class MatchdayClosingService {
         matchdayRepository.save(matchday);
         log.info("Matchday {} closed", matchdayId);
 
+        log.debug("closeAndAutoSubmit: invoking autoSubmitMissing for matchday {}", matchdayId);
         autoSubmitService.autoSubmitMissing(matchdayId);
+        log.debug("closeAndAutoSubmit: autoSubmitMissing returned for matchday {}", matchdayId);
     }
 
     /**
@@ -51,6 +54,8 @@ public class MatchdayClosingService {
     public void scheduleCloseJob(Matchday matchday) {
         League league = leagueRepository.findById(matchday.getLeagueId()).orElseThrow();
         var deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
+        log.debug("scheduleCloseJob: matchday {} startAt={} betDeadlineMinutes={} -> deadline={}",
+                matchday.getId(), matchday.getStartAt(), league.getBetDeadlineMinutes(), deadline);
         if (deadline == null) {
             log.warn("scheduleCloseJob: matchday {} has no deadline, skipping", matchday.getId());
             return;
@@ -65,7 +70,9 @@ public class MatchdayClosingService {
                 .storeDurably(false)
                 .build();
 
-        Date fireAt = Date.from(deadline.atZone(ZoneId.systemDefault()).toInstant());
+        Date fireAt = Date.from(deadline.atZone(AppClock.ZONE).toInstant());
+        log.debug("scheduleCloseJob: matchday {} zone={} fireAt(epoch)={} fireAt(local)={}",
+                matchday.getId(), AppClock.ZONE, fireAt.getTime(), fireAt);
 
         Trigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity(triggerKey)
@@ -75,12 +82,15 @@ public class MatchdayClosingService {
                 .build();
 
         try {
-            if (scheduler.checkExists(jobKey)) {
+            boolean replaced = scheduler.checkExists(jobKey);
+            if (replaced) {
                 scheduler.deleteJob(jobKey);
+                log.debug("scheduleCloseJob: deleted pre-existing job {} before rescheduling", jobKey);
             }
             scheduler.scheduleJob(job, trigger);
-            log.info("Quartz job scheduled for matchday {} at {}", matchday.getId(), deadline);
+            log.info("Quartz job scheduled for matchday {} at {} (replaced existing={})", matchday.getId(), deadline, replaced);
         } catch (SchedulerException e) {
+            log.error("scheduleCloseJob: failed to schedule job for matchday {}", matchday.getId(), e);
             throw new RuntimeException("Failed to schedule close job for matchday " + matchday.getId(), e);
         }
     }

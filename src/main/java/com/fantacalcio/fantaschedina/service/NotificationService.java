@@ -61,7 +61,10 @@ public class NotificationService {
     }
 
     public void sendReminderEmail(User user, League league, Matchday matchday, LocalDateTime deadline) {
-        if (!user.getNotificationsEnabled()) return;
+        if (!user.getNotificationsEnabled()) {
+            log.debug("sendReminderEmail: notifications disabled for user {} ({}), skipping", user.getId(), user.getEmail());
+            return;
+        }
 
         String betLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId() + "/bet";
 
@@ -78,7 +81,10 @@ public class NotificationService {
     }
 
     public void sendAutoSubmitEmail(User user, League league, Matchday matchday, int amountCharged) {
-        if (!user.getNotificationsEnabled()) return;
+        if (!user.getNotificationsEnabled()) {
+            log.debug("sendAutoSubmitEmail: notifications disabled for user {} ({}), skipping", user.getId(), user.getEmail());
+            return;
+        }
 
         String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
 
@@ -94,7 +100,10 @@ public class NotificationService {
     }
 
     public void sendResultsAvailableEmail(User user, League league, Matchday matchday) {
-        if (!user.getNotificationsEnabled()) return;
+        if (!user.getNotificationsEnabled()) {
+            log.debug("sendResultsAvailableEmail: notifications disabled for user {} ({}), skipping", user.getId(), user.getEmail());
+            return;
+        }
 
         String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
 
@@ -109,7 +118,10 @@ public class NotificationService {
     }
 
     public void sendJackpotWonEmail(User user, League league, Matchday matchday, List<String> winnerTeamNames, int amountPerWinner) {
-        if (!user.getNotificationsEnabled()) return;
+        if (!user.getNotificationsEnabled()) {
+            log.debug("sendJackpotWonEmail: notifications disabled for user {} ({}), skipping", user.getId(), user.getEmail());
+            return;
+        }
 
         String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
 
@@ -127,6 +139,7 @@ public class NotificationService {
     }
 
     private void sendHtmlEmail(String to, String subject, String templateName, Context context) {
+        log.debug("sendHtmlEmail: preparing '{}' for {} (subject='{}')", templateName, to, subject);
         try {
             String html = templateEngine.process("email/" + templateName, context);
 
@@ -141,7 +154,7 @@ public class NotificationService {
             mailSender.send(message);
             log.info("Email '{}' sent to {}", templateName, to);
         } catch (Exception e) {
-            log.error("Failed to send '{}' email to {}: {}", templateName, to, e.getMessage());
+            log.error("Failed to send '{}' email to {} (subject='{}')", templateName, to, subject, e);
         }
     }
 }

@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.exception.SlipNotFoundException;
 import com.fantacalcio.fantaschedina.dto.BetPickRequest;
 import com.fantacalcio.fantaschedina.dto.BetSlipRequest;
 import com.fantacalcio.fantaschedina.repository.*;
+import com.fantacalcio.fantaschedina.util.AppClock;
 import com.fantacalcio.fantaschedina.util.OutcomeConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -48,7 +49,7 @@ public class BetService {
         }
 
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
-        if (deadline != null && LocalDateTime.now().isAfter(deadline)) {
+        if (deadline != null && AppClock.now().isAfter(deadline)) {
             throw new BetValidationException("La scadenza per questa giornata è già passata.", leagueId, matchdayId);
         }
 

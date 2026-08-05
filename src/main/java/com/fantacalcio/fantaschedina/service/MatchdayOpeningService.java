@@ -25,11 +25,15 @@ public class MatchdayOpeningService {
      */
     @Transactional
     public void tryOpen(Matchday matchday) {
+        log.debug("tryOpen: matchday {} status={} startAt={}", matchday.getId(), matchday.getStatus(), matchday.getStartAt());
         if (matchday.getStatus() != MatchdayStatus.SCHEDULED || matchday.getStartAt() == null) {
+            log.debug("tryOpen: matchday {} not eligible (status={}, startAt={}), skipping", matchday.getId(), matchday.getStatus(), matchday.getStartAt());
             return;
         }
         if (isPreviousProcessedOrAbsent(matchday)) {
             open(matchday);
+        } else {
+            log.debug("tryOpen: matchday {} previous matchday not PROCESSED yet, staying SCHEDULED", matchday.getId());
         }
     }
 
@@ -40,10 +44,15 @@ public class MatchdayOpeningService {
     @Transactional
     public void tryOpenNext(Long leagueId, int processedNumber) {
         List<Matchday> candidates = matchdayRepository.findByLeagueIdAndStatus(leagueId, MatchdayStatus.SCHEDULED);
-        candidates.stream()
+        log.debug("tryOpenNext: league {} processedNumber={} -> {} SCHEDULED candidate(s)", leagueId, processedNumber, candidates.size());
+        var next = candidates.stream()
                 .filter(md -> md.getNumber() > processedNumber && md.getStartAt() != null)
-                .min(Comparator.comparingInt(Matchday::getNumber))
-                .ifPresent(this::open);
+                .min(Comparator.comparingInt(Matchday::getNumber));
+        if (next.isPresent()) {
+            open(next.get());
+        } else {
+            log.debug("tryOpenNext: league {} no eligible next matchday (needs number > {} and startAt set)", leagueId, processedNumber);
+        }
     }
 
     private void open(Matchday matchday) {

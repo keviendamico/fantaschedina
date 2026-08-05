@@ -32,12 +32,15 @@ public class AutoSubmitService {
 
     @Transactional
     public void autoSubmitMissing(Long matchdayId) {
+        log.debug("autoSubmitMissing: called for matchday {}", matchdayId);
         Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
         League league = leagueRepository.findById(matchday.getLeagueId()).orElseThrow();
 
         List<MatchdayFixture> fixtures = matchdayFixtureRepository.findByMatchdayId(matchdayId);
         List<BetTemplate> templates = betTemplateRepository.findByLeagueIdOrderByOrderIndexAsc(league.getId());
         List<FantaTeam> allTeams = fantaTeamRepository.findByLeagueId(league.getId());
+        log.debug("autoSubmitMissing: matchday {} -> {} fixtures, {} bet templates, {} teams in league",
+                matchdayId, fixtures.size(), templates.size(), allTeams.size());
 
         int totalRequiredPicks = templates.stream().mapToInt(BetTemplate::getRequiredCount).sum();
         if (fixtures.size() != totalRequiredPicks) {
@@ -47,11 +50,14 @@ public class AutoSubmitService {
         }
 
         Random random = new Random();
+        int autoSubmitted = 0;
 
         for (FantaTeam team : allTeams) {
             if (betSlipRepository.existsByFantaTeamIdAndMatchdayId(team.getId(), matchdayId)) {
+                log.debug("autoSubmitMissing: team {} already has a slip for matchday {}, skipping", team.getId(), matchdayId);
                 continue;
             }
+            log.debug("autoSubmitMissing: generating auto-submit slip for team {} on matchday {}", team.getId(), matchdayId);
 
             LeagueMembership membership = leagueMembershipRepository
                     .findById(team.getLeagueMembershipId()).orElseThrow();
@@ -86,6 +92,8 @@ public class AutoSubmitService {
             }
 
             int newBalance = membership.getBalance() - league.getMatchdayCost();
+            log.debug("autoSubmitMissing: team {} membership {} balance {} -> {} (charge {})",
+                    team.getId(), membership.getId(), membership.getBalance(), newBalance, league.getMatchdayCost());
             membership.setBalance(newBalance);
             leagueMembershipRepository.save(membership);
 
@@ -100,11 +108,16 @@ public class AutoSubmitService {
                     .build());
 
             Jackpot jackpot = jackpotRepository.findByLeagueId(league.getId()).orElseThrow();
-            jackpot.setCurrentAmount(jackpot.getCurrentAmount() + league.getMatchdayCost());
+            int jackpotBefore = jackpot.getCurrentAmount();
+            jackpot.setCurrentAmount(jackpotBefore + league.getMatchdayCost());
             jackpotRepository.save(jackpot);
+            log.debug("autoSubmitMissing: jackpot for league {} {} -> {}", league.getId(), jackpotBefore, jackpot.getCurrentAmount());
 
             userRepository.findById(membership.getUserId()).ifPresent(user ->
                     notificationService.sendAutoSubmitEmail(user, league, matchday, league.getMatchdayCost()));
+            autoSubmitted++;
         }
+        log.info("autoSubmitMissing: matchday {} -> {} auto-submitted slip(s) generated (out of {} teams)",
+                matchdayId, autoSubmitted, allTeams.size());
     }
 }

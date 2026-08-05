@@ -5,6 +5,7 @@ import com.fantacalcio.fantaschedina.domain.entity.League;
 import com.fantacalcio.fantaschedina.domain.entity.LeagueMembership;
 import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.domain.enums.MatchdayStatus;
+import com.fantacalcio.fantaschedina.util.AppClock;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
@@ -37,10 +38,10 @@ public class UserLeagueCard {
         if (!isMatchdayOpen()) return false;
         if (currentSlip != null) return false;
         if (effectiveDeadline == null) return true;
-        return LocalDateTime.now().isBefore(effectiveDeadline);
+        return AppClock.now().isBefore(effectiveDeadline);
     }
 
     public boolean deadlinePassed() {
-        return effectiveDeadline != null && LocalDateTime.now().isAfter(effectiveDeadline);
+        return effectiveDeadline != null && AppClock.now().isAfter(effectiveDeadline);
     }
 }

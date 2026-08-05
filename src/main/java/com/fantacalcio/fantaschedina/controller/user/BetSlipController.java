@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.service.BetService;
 import com.fantacalcio.fantaschedina.service.BetTemplateService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
+import com.fantacalcio.fantaschedina.util.AppClock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -39,7 +40,7 @@ public class BetSlipController {
         // Only accessible when OPEN and deadline not passed
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
         if (matchday.getStatus() != MatchdayStatus.OPEN ||
-                (deadline != null && LocalDateTime.now().isAfter(deadline))) {
+                (deadline != null && AppClock.now().isAfter(deadline))) {
             return "redirect:/leagues/" + leagueId + "/matchdays/" + matchdayId;
         }
 
