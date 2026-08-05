@@ -23,7 +23,7 @@ services:
       - "8025:8025"
 
   app:
-    image: kappa9/fantaschedina:1.0.0
+    image: kappa9/fantaschedina:${APP_IMAGE_TAG:-1.0.0}
     platform: linux/amd64
     build: .
     restart: unless-stopped
