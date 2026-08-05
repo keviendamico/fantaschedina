@@ -47,6 +47,33 @@
         Nessuna giornata disponibile.
     </div>
 
+    <a th:if="${nextMatchday != null}"
+       th:href="@{/leagues/{leagueId}/matchdays/{mdId}(leagueId=${league.id}, mdId=${nextMatchday.id})}"
+       class="ft-ticket d-block text-decoration-none text-dark mb-4"
+       th:with="slip=${slipsByMatchday[nextMatchday.id]}">
+        <div class="ft-ticket-header">
+            <span>Prossima giornata da giocare</span>
+            <span class="text-decoration-none">&rsaquo;</span>
+        </div>
+        <div class="d-flex justify-content-between align-items-center p-3">
+            <div class="d-flex align-items-center gap-3">
+                <span class="ft-row-number" th:text="${nextMatchday.number}"></span>
+                <div>
+                    <div class="fw-semibold" th:text="'Giornata ' + ${nextMatchday.number}"></div>
+                    <div class="text-muted small" th:if="${deadlines.containsKey(nextMatchday.id)}">
+                        Scadenza: <span th:text="${#temporals.format(deadlines[nextMatchday.id], 'dd/MM/yyyy HH:mm')}"></span>
+                    </div>
+                </div>
+            </div>
+            <span th:if="${slip != null}" class="badge"
+                  th:classappend="${slip.status.name() == 'WON'}   ? 'badge-ft-green' :
+                                   (${slip.status.name() == 'LOST'}  ? 'badge-ft-red'  :
+                                   (${slip.status.name() == 'VOID'}  ? 'bg-secondary' : 'bg-warning text-dark'))"
+                  th:text="${slip.status.label}"></span>
+            <span th:unless="${slip != null}" class="btn btn-ft-green btn-sm">Gioca ora</span>
+        </div>
+    </a>
+
     <div class="ft-rows" th:unless="${#lists.isEmpty(matchdays)}">
         <a th:each="md : ${matchdays}"
            th:href="@{/leagues/{leagueId}/matchdays/{mdId}(leagueId=${league.id}, mdId=${md.id})}"
@@ -60,7 +87,7 @@
                           th:classappend="${md.status.name() == 'OPEN'} ? 'badge-ft-green' :
                                            (${md.status.name() == 'PROCESSED'} ? 'bg-secondary' :
                                            (${md.status.name() == 'RESULTS_LOADED'} ? 'bg-info text-dark' :
-                                           (${md.status.name() == 'CLOSED'} ? 'badge-ft-red' : 'bg-warning text-dark')))"
+                                           (${md.status.name() == 'CLOSED'} ? 'badge-ft-orange' : 'bg-warning text-dark')))"
                           th:text="${md.status.label}"></span>
                     <div class="text-muted small mt-1" th:if="${deadlines.containsKey(md.id)}">
                         Scadenza: <span th:text="${#temporals.format(deadlines[md.id], 'dd/MM/yyyy HH:mm')}"></span>

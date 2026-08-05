@@ -45,7 +45,7 @@
               th:classappend="${matchday.status.name() == 'OPEN'} ? 'badge-ft-green' :
                                (${matchday.status.name() == 'PROCESSED'} ? 'bg-secondary' :
                                (${matchday.status.name() == 'RESULTS_LOADED'} ? 'bg-info text-dark' :
-                               (${matchday.status.name() == 'CLOSED'} ? 'badge-ft-red' : 'bg-warning text-dark')))"
+                               (${matchday.status.name() == 'CLOSED'} ? 'badge-ft-orange' : 'bg-warning text-dark')))"
               th:text="${matchday.status.label}"></span>
     </div>
 

@@ -1,6 +1,7 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
+import com.fantacalcio.fantaschedina.domain.enums.MatchdayStatus;
 import com.fantacalcio.fantaschedina.service.BetService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
@@ -45,11 +46,17 @@ public class UserMatchdayController {
                         .collect(Collectors.toMap(BetSlip::getMatchdayId, s -> s))
                 : Map.of();
 
+        Matchday nextMatchday = matchdays.stream()
+                .filter(m -> m.getStatus() == MatchdayStatus.OPEN)
+                .findFirst()
+                .orElse(null);
+
         model.addAttribute("league", league);
         model.addAttribute("matchdays", matchdays);
         model.addAttribute("deadlines", deadlines);
         model.addAttribute("myTeam", myTeam);
         model.addAttribute("slipsByMatchday", slipsByMatchday);
+        model.addAttribute("nextMatchday", nextMatchday);
 
         return "user/matchday-list";
     }

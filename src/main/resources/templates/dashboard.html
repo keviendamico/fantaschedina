@@ -44,7 +44,7 @@
                             <span class="badge"
                                   th:text="${card.currentMatchday.status.label}"
                                   th:classappend="${card.currentMatchday.status.name() == 'OPEN'} ? 'badge-ft-green' :
-                                                  (${card.currentMatchday.status.name() == 'CLOSED'} ? 'bg-warning text-dark' :
+                                                  (${card.currentMatchday.status.name() == 'CLOSED'} ? 'badge-ft-orange' :
                                                   'bg-secondary')">
                             </span>
                         </div>
@@ -85,7 +85,7 @@
                         </div>
                         <div th:if="${card.jackpot != null}">
                             <div class="small text-muted text-uppercase fw-semibold">Jackpot</div>
-                            <div class="fw-bold" style="color: var(--ft-red);" th:text="${card.jackpot} + ' cr'"></div>
+                            <div class="fw-bold" style="color: var(--ft-pink-dark);" th:text="${card.jackpot} + ' cr'"></div>
                         </div>
                     </div>
 

@@ -37,6 +37,13 @@ public class InviteService {
             .map(User::getId)
             .orElse(null);
 
+        if (existingUserId != null && leagueMembershipRepository.existsByLeagueIdAndUserId(leagueId, existingUserId)) {
+            throw new IllegalArgumentException("Questo utente è già membro di questa lega.");
+        }
+        if (inviteRepository.existsByLeagueIdAndEmailAndStatus(leagueId, email, InviteStatus.PENDING)) {
+            throw new IllegalArgumentException("Esiste già un invito in sospeso per questa email su questa lega.");
+        }
+
         Invite invite = Invite.builder()
             .leagueId(leagueId)
             .userId(existingUserId)

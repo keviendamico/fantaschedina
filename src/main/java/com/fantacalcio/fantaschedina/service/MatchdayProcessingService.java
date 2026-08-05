@@ -30,6 +30,8 @@ public class MatchdayProcessingService {
     private final JackpotRepository jackpotRepository;
     private final LeagueRepository leagueRepository;
     private final MatchdayOpeningService matchdayOpeningService;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public Matchday loadResults(Long matchdayId, MatchdayResultRequest request) {
@@ -140,7 +142,17 @@ public class MatchdayProcessingService {
         matchday.setStatus(MatchdayStatus.PROCESSED);
         matchdayRepository.save(matchday);
 
+        notifyResultsAvailable(league, matchday);
+
         // Trigger 2: open next matchday if startAt already set
         matchdayOpeningService.tryOpenNext(matchday.getLeagueId(), matchday.getNumber());
+    }
+
+    private void notifyResultsAvailable(League league, Matchday matchday) {
+        List<LeagueMembership> members = leagueMembershipRepository.findByLeagueId(league.getId());
+        for (LeagueMembership member : members) {
+            userRepository.findById(member.getUserId()).ifPresent(user ->
+                    notificationService.sendResultsAvailableEmail(user, league, matchday));
+        }
     }
 }

@@ -35,7 +35,7 @@
         <span class="text-muted small" th:if="${myTeam != null}" th:text="${myTeam.name}"></span>
     </div>
 
-    <div class="ft-ticket-header ft-red mb-3" style="border-radius: var(--ft-radius-sm);" th:if="${deadline != null}">
+    <div class="ft-ticket-header ft-orange mb-3" style="border-radius: var(--ft-radius-sm);" th:if="${deadline != null}">
         <span class="small">Scade: <strong th:text="${#temporals.format(deadline, 'dd/MM HH:mm')}"></strong></span>
         <span id="countdown" class="fw-bold small"></span>
     </div>

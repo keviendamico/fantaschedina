@@ -3,9 +3,12 @@ package com.fantacalcio.fantaschedina.controller.user;
 import com.fantacalcio.fantaschedina.domain.entity.Invite;
 import com.fantacalcio.fantaschedina.service.InviteService;
 import com.fantacalcio.fantaschedina.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +21,13 @@ public class InviteController {
 
     private final InviteService inviteService;
     private final UserService userService;
+    private final RequestCache requestCache;
 
     @GetMapping("/accept")
     public String acceptInvite(@RequestParam String token,
                                Authentication authentication,
+                               HttpServletRequest request,
+                               HttpServletResponse response,
                                Model model) {
         Invite invite = inviteService.findValidInvite(token);
 
@@ -32,6 +38,7 @@ public class InviteController {
 
         // Existing user flow — must be authenticated
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
+            requestCache.saveRequest(request, response);
             return "redirect:/login";
         }
 

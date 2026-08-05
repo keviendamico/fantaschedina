@@ -15,4 +15,6 @@ public interface InviteRepository extends JpaRepository<Invite, Long> {
     List<Invite> findByLeagueId(Long leagueId);
 
     List<Invite> findByStatusAndExpiresAtBefore(InviteStatus status, LocalDateTime now);
+
+    boolean existsByLeagueIdAndEmailAndStatus(Long leagueId, String email, InviteStatus status);
 }

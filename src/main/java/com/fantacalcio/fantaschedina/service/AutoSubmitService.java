@@ -27,6 +27,8 @@ public class AutoSubmitService {
     private final CreditTransactionRepository creditTransactionRepository;
     private final LeagueRepository leagueRepository;
     private final JackpotRepository jackpotRepository;
+    private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void autoSubmitMissing(Long matchdayId) {
@@ -100,6 +102,9 @@ public class AutoSubmitService {
             Jackpot jackpot = jackpotRepository.findByLeagueId(league.getId()).orElseThrow();
             jackpot.setCurrentAmount(jackpot.getCurrentAmount() + league.getMatchdayCost());
             jackpotRepository.save(jackpot);
+
+            userRepository.findById(membership.getUserId()).ifPresent(user ->
+                    notificationService.sendAutoSubmitEmail(user, league, matchday, league.getMatchdayCost()));
         }
     }
 }

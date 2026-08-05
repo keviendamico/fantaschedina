@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Logo + title -->
+<tr th:fragment="header(heading)">
+    <td style="background-color:#0b5e34; padding:28px 24px 22px; text-align:center;">
+        <img src="cid:logo" width="160" alt="FantaTotocalcio"
+             style="display:block; margin:0 auto 16px; border:0; max-width:160px;">
+        <div style="color:#f2d51c; font-size:19px; font-weight:700; letter-spacing:.03em;
+                    text-transform:uppercase; font-family:Georgia,'Times New Roman',serif;"
+             th:text="${heading}">Titolo</div>
+    </td>
+</tr>
+
+<!-- Button - call-to-action -->
+<a th:fragment="cta(text, link)" th:href="${link}" th:text="${text}"
+   style="display:inline-block; background-color:#0b5e34; color:#f2d51c !important; text-decoration:none;
+          font-weight:700; padding:13px 32px; border-radius:24px; font-size:15px;">CTA</a>
+
+<!-- Footer -->
+<tr th:fragment="footer">
+    <td style="padding:20px 24px; text-align:center; color:#8a8067; font-size:12px;
+               border-top:1px solid #f4e9cf;">
+        <div style="margin-bottom:4px;">FantaTotocalcio</div>
+    </td>
+</tr>
+
+</body>
+</html>

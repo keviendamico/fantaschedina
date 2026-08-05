@@ -32,7 +32,7 @@
                             <span class="badge"
                                   th:text="${card.currentMatchday.status.label}"
                                   th:classappend="${card.currentMatchday.status.name() == 'OPEN'} ? 'bg-success' :
-                                                  (${card.currentMatchday.status.name() == 'CLOSED'} ? 'bg-warning text-dark' :
+                                                  (${card.currentMatchday.status.name() == 'CLOSED'} ? 'badge-ft-orange' :
                                                   'bg-secondary')">
                             </span>
                         </div>

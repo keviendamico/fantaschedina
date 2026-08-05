@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="margin:0; padding:0; background-color:#f4e9cf; font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4e9cf; padding:32px 0;">
+    <tr>
+        <td align="center">
+            <table role="presentation" width="480" cellpadding="0" cellspacing="0"
+                   style="background-color:#fffdf8; border-radius:18px; overflow:hidden; max-width:480px; width:100%;">
+                <tr th:replace="~{email/fragments :: header('Risultati disponibili')}"></tr>
+                <tr>
+                    <td style="padding:8px 32px 32px; color:#23301f; font-size:15px; line-height:1.6;">
+                        <p>Ciao <strong th:text="${username}">utente</strong>!</p>
+                        <p>Sono stati caricati i risultati della giornata
+                            <strong th:text="${matchdayNumber}">1</strong> di
+                            <strong th:text="${leagueName}">Lega</strong> e le schedine sono state elaborate.</p>
+                        <p style="text-align:center; margin:28px 0;">
+                            <a th:replace="~{email/fragments :: cta('Vedi i risultati', ${matchdayLink})}"></a>
+                        </p>
+                    </td>
+                </tr>
+                <tr th:replace="~{email/fragments :: footer}"></tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

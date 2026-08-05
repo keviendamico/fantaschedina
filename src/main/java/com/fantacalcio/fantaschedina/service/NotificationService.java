@@ -2,20 +2,33 @@ package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.Invite;
 import com.fantacalcio.fantaschedina.domain.entity.League;
+import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.domain.entity.User;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationService {
 
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATE_ONLY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
 
     @Value("${app.mail.from:noreply@fantatotocalcio.it}")
     private String from;
@@ -26,56 +39,84 @@ public class NotificationService {
     public void sendInviteEmail(Invite invite, League league) {
         String inviteLink = baseUrl + "/invite/accept?token=" + invite.getToken();
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
-        message.setTo(invite.getEmail());
-        message.setSubject("Sei stato invitato a partecipare a " + league.getName());
-        message.setText("""
-                Ciao!
+        Context context = new Context(Locale.ITALIAN);
+        context.setVariable("leagueName", league.getName());
+        context.setVariable("inviteLink", inviteLink);
+        context.setVariable("expiresAt", invite.getExpiresAt().toLocalDate().format(DATE_ONLY));
 
-                Sei stato invitato a unirti alla lega "%s" su FantaTotocalcio.
-
-                Clicca il link per accettare l'invito:
-                %s
-
-                Il link scade il %s.
-
-                FantaTotocalcio
-                """.formatted(league.getName(), inviteLink, invite.getExpiresAt().toLocalDate()));
-
-        try {
-            mailSender.send(message);
-            log.info("Invite email sent to {}", invite.getEmail());
-        } catch (Exception e) {
-            log.error("Failed to send invite email to {}: {}", invite.getEmail(), e.getMessage());
-        }
+        sendHtmlEmail(invite.getEmail(), "Sei stato invitato a partecipare a " + league.getName(),
+                "invite", context);
     }
 
     public void sendPasswordResetEmail(User user, String token) {
         String resetLink = baseUrl + "/reset-password?token=" + token;
 
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(from);
-        message.setTo(user.getEmail());
-        message.setSubject("Reimposta la tua password FantaTotocalcio");
-        message.setText("""
-                Ciao %s!
+        Context context = new Context(Locale.ITALIAN);
+        context.setVariable("username", user.getUsername());
+        context.setVariable("resetLink", resetLink);
 
-                Hai richiesto di reimpostare la tua password su FantaTotocalcio.
+        sendHtmlEmail(user.getEmail(), "Reimposta la tua password FantaTotocalcio",
+                "password-reset", context);
+    }
 
-                Clicca il link per scegliere una nuova password:
-                %s
+    public void sendReminderEmail(User user, League league, Matchday matchday, LocalDateTime deadline) {
+        String betLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId() + "/bet";
 
-                Il link scade tra un'ora. Se non hai richiesto tu il reset, ignora questa email.
+        Context context = new Context(Locale.ITALIAN);
+        context.setVariable("username", user.getUsername());
+        context.setVariable("leagueName", league.getName());
+        context.setVariable("matchdayNumber", matchday.getNumber());
+        context.setVariable("deadline", deadline.format(DATE_TIME));
+        context.setVariable("betLink", betLink);
 
-                FantaTotocalcio
-                """.formatted(user.getUsername(), resetLink));
+        sendHtmlEmail(user.getEmail(),
+                "Non hai ancora giocato la giornata " + matchday.getNumber() + " – " + league.getName(),
+                "reminder", context);
+    }
 
+    public void sendAutoSubmitEmail(User user, League league, Matchday matchday, int amountCharged) {
+        String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
+
+        Context context = new Context(Locale.ITALIAN);
+        context.setVariable("username", user.getUsername());
+        context.setVariable("leagueName", league.getName());
+        context.setVariable("matchdayNumber", matchday.getNumber());
+        context.setVariable("amountCharged", amountCharged);
+        context.setVariable("matchdayLink", matchdayLink);
+
+        sendHtmlEmail(user.getEmail(), "Schedina auto-generata – giornata " + matchday.getNumber(),
+                "auto-submit", context);
+    }
+
+    public void sendResultsAvailableEmail(User user, League league, Matchday matchday) {
+        String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
+
+        Context context = new Context(Locale.ITALIAN);
+        context.setVariable("username", user.getUsername());
+        context.setVariable("leagueName", league.getName());
+        context.setVariable("matchdayNumber", matchday.getNumber());
+        context.setVariable("matchdayLink", matchdayLink);
+
+        sendHtmlEmail(user.getEmail(), "Risultati disponibili – giornata " + matchday.getNumber(),
+                "results-available", context);
+    }
+
+    private void sendHtmlEmail(String to, String subject, String templateName, Context context) {
         try {
+            String html = templateEngine.process("email/" + templateName, context);
+
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(html, true);
+            helper.addInline("logo", new ClassPathResource("static/images/logo.png"));
+
             mailSender.send(message);
-            log.info("Password reset email sent to {}", user.getEmail());
+            log.info("Email '{}' sent to {}", templateName, to);
         } catch (Exception e) {
-            log.error("Failed to send password reset email to {}: {}", user.getEmail(), e.getMessage());
+            log.error("Failed to send '{}' email to {}: {}", templateName, to, e.getMessage());
         }
     }
 }
