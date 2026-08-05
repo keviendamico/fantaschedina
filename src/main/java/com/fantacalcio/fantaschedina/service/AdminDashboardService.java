@@ -1,6 +1,7 @@
 package com.fantacalcio.fantaschedina.service;
 
 import com.fantacalcio.fantaschedina.domain.entity.Invite;
+import com.fantacalcio.fantaschedina.domain.entity.Jackpot;
 import com.fantacalcio.fantaschedina.domain.entity.League;
 import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.domain.enums.InviteStatus;
@@ -29,8 +30,8 @@ public class AdminDashboardService {
     private final InviteRepository inviteRepository;
     private final MatchdayService matchdayService;
 
-    public List<AdminLeagueCard> buildLeagueCards() {
-        return leagueRepository.findAll().stream()
+    public List<AdminLeagueCard> buildLeagueCards(Long adminUserId) {
+        return leagueRepository.findByCreatedByUserId(adminUserId).stream()
                 .map(this::buildCard)
                 .toList();
     }
@@ -57,7 +58,7 @@ public class AdminDashboardService {
         long totalTeams = fantaTeamRepository.findByLeagueId(league.getId()).size();
 
         Integer jackpot = jackpotRepository.findByLeagueId(league.getId())
-                .map(j -> j.getCurrentAmount())
+                .map(Jackpot::getCurrentAmount)
                 .orElse(null);
 
         LocalDateTime deadline = current != null

@@ -31,7 +31,9 @@ public class AdminBetSlipController {
     @GetMapping("/matchdays/{matchdayId}/slips")
     public String listSlips(@PathVariable Long leagueId,
                             @PathVariable Long matchdayId,
+                            @AuthenticationPrincipal UserDetails user,
                             Model model) {
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
         List<BetSlip> slips = adminBetSlipService.getSlipsForMatchday(matchdayId);
         Map<Long, String> teamNames = adminBetSlipService.getTeamNamesForSlips(slips);
@@ -46,7 +48,9 @@ public class AdminBetSlipController {
     @GetMapping("/slips/{slipId}/edit")
     public String editForm(@PathVariable Long leagueId,
                            @PathVariable Long slipId,
+                           @AuthenticationPrincipal UserDetails user,
                            Model model) {
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         BetSlip slip = adminBetSlipService.getSlip(slipId);
         Matchday matchday = matchdayService.getMatchday(slip.getMatchdayId(), leagueId);
 
@@ -68,6 +72,7 @@ public class AdminBetSlipController {
                            @AuthenticationPrincipal UserDetails userDetails,
                            RedirectAttributes redirectAttributes) {
         Long adminUserId = userService.getUserId(userDetails.getUsername());
+        leagueService.findByIdForAdmin(leagueId, adminUserId);
         BetSlip slip = adminBetSlipService.getSlip(slipId);
         adminBetSlipService.modifySlip(slipId, adminUserId, request, note);
         redirectAttributes.addFlashAttribute("success", "Schedina modificata con successo.");
