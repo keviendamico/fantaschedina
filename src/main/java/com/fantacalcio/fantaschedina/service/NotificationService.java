@@ -17,6 +17,7 @@ import org.thymeleaf.context.Context;
 
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Locale;
 
 @Service
@@ -105,6 +106,24 @@ public class NotificationService {
 
         sendHtmlEmail(user.getEmail(), "Risultati disponibili – giornata " + matchday.getNumber(),
                 "results-available", context);
+    }
+
+    public void sendJackpotWonEmail(User user, League league, Matchday matchday, List<String> winnerTeamNames, int amountPerWinner) {
+        if (!user.getNotificationsEnabled()) return;
+
+        String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
+
+        Context context = new Context(Locale.ITALIAN);
+        context.setVariable("username", user.getUsername());
+        context.setVariable("leagueName", league.getName());
+        context.setVariable("matchdayNumber", matchday.getNumber());
+        context.setVariable("winnerTeamNames", winnerTeamNames);
+        context.setVariable("amountPerWinner", amountPerWinner);
+        context.setVariable("matchdayLink", matchdayLink);
+
+        sendHtmlEmail(user.getEmail(),
+                "Signori, abbiamo un vincitore! – giornata " + matchday.getNumber() + " – " + league.getName(),
+                "jackpot-won", context);
     }
 
     private void sendHtmlEmail(String to, String subject, String templateName, Context context) {

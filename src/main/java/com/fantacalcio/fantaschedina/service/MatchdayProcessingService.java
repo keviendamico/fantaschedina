@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -117,6 +118,7 @@ public class MatchdayProcessingService {
         if (!winners.isEmpty()) {
             int share = jackpot.getCurrentAmount() / winners.size();
             int remainder = jackpot.getCurrentAmount() % winners.size();
+            List<String> winnerTeamNames = new ArrayList<>();
             for (BetSlip winner : winners) {
                 FantaTeam team = fantaTeamRepository.findById(winner.getFantaTeamId()).orElseThrow();
                 LeagueMembership membership = leagueMembershipRepository.findById(team.getLeagueMembershipId()).orElseThrow();
@@ -132,8 +134,10 @@ public class MatchdayProcessingService {
                         .createdAt(LocalDateTime.now())
                         .note("Vincita giornata " + matchday.getNumber())
                         .build());
+                winnerTeamNames.add(team.getName());
             }
             jackpot.setCurrentAmount(league.getJackpotStart() + remainder);
+            notifyJackpotWon(league, matchday, winnerTeamNames, share);
         }
         jackpot.setLastUpdatedMatchdayId(matchdayId);
         jackpotRepository.save(jackpot);
@@ -153,6 +157,14 @@ public class MatchdayProcessingService {
         for (LeagueMembership member : members) {
             userRepository.findById(member.getUserId()).ifPresent(user ->
                     notificationService.sendResultsAvailableEmail(user, league, matchday));
+        }
+    }
+
+    private void notifyJackpotWon(League league, Matchday matchday, List<String> winnerTeamNames, int amountPerWinner) {
+        List<LeagueMembership> members = leagueMembershipRepository.findByLeagueId(league.getId());
+        for (LeagueMembership member : members) {
+            userRepository.findById(member.getUserId()).ifPresent(user ->
+                    notificationService.sendJackpotWonEmail(user, league, matchday, winnerTeamNames, amountPerWinner));
         }
     }
 }
