@@ -29,4 +29,6 @@ public class Matchday {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private MatchdayStatus status;
+
+    private LocalDateTime reminderSentAt;
 }

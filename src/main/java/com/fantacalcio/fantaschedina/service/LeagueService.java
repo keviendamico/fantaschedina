@@ -9,6 +9,7 @@ import com.fantacalcio.fantaschedina.dto.LeagueRequest;
 import com.fantacalcio.fantaschedina.repository.JackpotRepository;
 import com.fantacalcio.fantaschedina.repository.LeagueAuditLogRepository;
 import com.fantacalcio.fantaschedina.repository.LeagueRepository;
+import com.fantacalcio.fantaschedina.repository.MatchdayRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ public class LeagueService {
     private final LeagueRepository leagueRepository;
     private final JackpotRepository jackpotRepository;
     private final LeagueAuditLogRepository leagueAuditLogRepository;
+    private final MatchdayRepository matchdayRepository;
 
     @Transactional(readOnly = true)
     public List<League> findAll() {
@@ -89,6 +91,9 @@ public class LeagueService {
         League league = findById(id);
         if (league.getStatus() != LeagueStatus.SETUP) {
             throw new IllegalStateException("Solo una lega in stato SETUP può essere attivata");
+        }
+        if (matchdayRepository.findByLeagueIdOrderByNumberAsc(id).isEmpty()) {
+            throw new IllegalStateException("Non è possibile attivare la lega: carica prima il calendario.");
         }
         league.setStatus(LeagueStatus.ACTIVE);
         leagueRepository.save(league);

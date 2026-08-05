@@ -26,8 +26,9 @@ import java.util.List;
 /**
  * Sends a one-time reminder to team owners who haven't submitted a bet slip yet,
  * a configurable number of minutes before the matchday's effective deadline.
- * Fires exactly once per matchday: it only matches when the reminder instant
- * falls within the current minute-tick of this @Scheduled poll.
+ * Idempotent via {@code Matchday.reminderSentAt}: once the reminder instant has
+ * passed for a matchday it fires on the next tick and is never repeated, so a
+ * delayed or skipped tick (GC pause, slow email send, etc.) doesn't lose the reminder.
  */
 @Slf4j
 @Component
@@ -48,20 +49,24 @@ public class MatchdayReminderScheduler {
 
     @Scheduled(cron = "0 * * * * *")
     public void sendPreDeadlineReminders() {
-        LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+        LocalDateTime now = LocalDateTime.now();
 
         List<Matchday> openMatchdays = matchdayRepository.findByStatus(MatchdayStatus.OPEN);
         for (Matchday matchday : openMatchdays) {
+            if (matchday.getReminderSentAt() != null) continue;
+
             League league = leagueRepository.findById(matchday.getLeagueId()).orElse(null);
             if (league == null) continue;
 
             LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
             if (deadline == null) continue;
 
-            LocalDateTime reminderAt = deadline.minusMinutes(minutesBeforeDeadline).withSecond(0).withNano(0);
-            if (!reminderAt.equals(now)) continue;
+            LocalDateTime reminderAt = deadline.minusMinutes(minutesBeforeDeadline);
+            if (now.isBefore(reminderAt)) continue;
 
             remindMissingTeams(league, matchday, deadline);
+            matchday.setReminderSentAt(now);
+            matchdayRepository.save(matchday);
         }
     }
 
