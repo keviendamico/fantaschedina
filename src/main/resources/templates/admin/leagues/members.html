@@ -55,6 +55,10 @@
                         <td class="text-end fw-semibold"
                             th:text="${row.membership().balance} + ' cr'"></td>
                         <td class="text-end">
+                            <a th:href="@{/admin/leagues/{leagueId}/members/{membershipId}/edit-user(leagueId=${league.id},membershipId=${row.membership().id})}"
+                               class="btn btn-outline-secondary btn-sm">
+                                Modifica utente
+                            </a>
                             <button type="button" class="btn btn-outline-primary btn-sm"
                                     data-bs-toggle="modal" data-bs-target="#adjustModal"
                                     th:data-membership-id="${row.membership().id}"
@@ -108,7 +112,9 @@
             </form>
         </div>
     </div>
+</div>
 
+<div class="container">
     <!-- Audit log -->
     <div class="card shadow-sm mt-4">
         <div class="card-header fw-semibold">Storico modifiche admin</div>

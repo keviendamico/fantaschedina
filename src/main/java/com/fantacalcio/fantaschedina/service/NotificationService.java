@@ -60,6 +60,8 @@ public class NotificationService {
     }
 
     public void sendReminderEmail(User user, League league, Matchday matchday, LocalDateTime deadline) {
+        if (!user.getNotificationsEnabled()) return;
+
         String betLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId() + "/bet";
 
         Context context = new Context(Locale.ITALIAN);
@@ -75,6 +77,8 @@ public class NotificationService {
     }
 
     public void sendAutoSubmitEmail(User user, League league, Matchday matchday, int amountCharged) {
+        if (!user.getNotificationsEnabled()) return;
+
         String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
 
         Context context = new Context(Locale.ITALIAN);
@@ -89,6 +93,8 @@ public class NotificationService {
     }
 
     public void sendResultsAvailableEmail(User user, League league, Matchday matchday) {
+        if (!user.getNotificationsEnabled()) return;
+
         String matchdayLink = baseUrl + "/leagues/" + league.getId() + "/matchdays/" + matchday.getId();
 
         Context context = new Context(Locale.ITALIAN);

@@ -72,4 +72,14 @@ public class AdminLeagueMemberService {
     public List<LeagueAuditLog> getAuditLog(Long leagueId) {
         return leagueAuditLogRepository.findByLeagueIdOrderByCreatedAtDesc(leagueId);
     }
+
+    @Transactional(readOnly = true)
+    public LeagueMembership getMembershipForLeague(Long leagueId, Long membershipId) {
+        LeagueMembership membership = leagueMembershipRepository.findById(membershipId)
+                .orElseThrow(() -> new IllegalArgumentException("Iscrizione non trovata."));
+        if (!membership.getLeagueId().equals(leagueId)) {
+            throw new IllegalArgumentException("Iscrizione non appartenente a questa lega.");
+        }
+        return membership;
+    }
 }
