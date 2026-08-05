@@ -8,7 +8,7 @@
             <img th:src="@{/images/logo.png}" alt="FantaTotocalcio" class="ft-logo">
         </a>
         <div class="d-flex align-items-center gap-2">
-            <a th:href="@{/profile}" class="text-white small d-none d-sm-inline text-decoration-none">
+            <a th:href="@{/profile}" class="text-white small text-decoration-none">
                 <span sec:authentication="name"></span>
             </a>
             <form th:action="@{/logout}" method="post" class="m-0">
