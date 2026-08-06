@@ -1,7 +1,6 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.dto.RegisterRequest;
-import com.fantacalcio.fantaschedina.exception.InvalidInviteException;
 import com.fantacalcio.fantaschedina.service.InviteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
