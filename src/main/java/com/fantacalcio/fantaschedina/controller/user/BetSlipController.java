@@ -9,6 +9,7 @@ import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import com.fantacalcio.fantaschedina.util.AppClock;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequestMapping("/leagues")
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class BetSlipController {
     public String form(@PathVariable Long leagueId, @PathVariable Long matchdayId,
                        Authentication authentication, Model model) {
         Long userId = userService.getUserId(authentication.getName());
+        log.debug("form: user {} league {} matchday {}", userId, leagueId, matchdayId);
         League league = matchdayService.getLeagueForMember(leagueId, userId);
 
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
@@ -41,6 +44,7 @@ public class BetSlipController {
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
         if (matchday.getStatus() != MatchdayStatus.OPEN ||
                 (deadline != null && AppClock.now().isAfter(deadline))) {
+            log.debug("form: matchday {} not open for betting (status={}, deadline={})", matchdayId, matchday.getStatus(), deadline);
             return "redirect:/leagues/" + leagueId + "/matchdays/" + matchdayId;
         }
 
@@ -50,6 +54,7 @@ public class BetSlipController {
         if (myTeam != null) {
             BetSlip existing = betService.findSlip(myTeam.getId(), matchdayId);
             if (existing != null) {
+                log.debug("form: matchday {} slip already submitted by team {}", matchdayId, myTeam.getId());
                 return "redirect:/leagues/" + leagueId + "/matchdays/" + matchdayId;
             }
         }
@@ -74,6 +79,7 @@ public class BetSlipController {
                          Authentication authentication,
                          RedirectAttributes redirectAttributes) {
         Long userId = userService.getUserId(authentication.getName());
+        log.info("submit: user {} submitting bet slip for league {} matchday {}", userId, leagueId, matchdayId);
         betService.submit(leagueId, matchdayId, userId, request);
         redirectAttributes.addFlashAttribute("success", "Schedina inviata con successo!");
         return "redirect:/leagues/" + leagueId + "/matchdays/" + matchdayId;

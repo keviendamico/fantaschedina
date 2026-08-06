@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.exception.InviteActionException;
 import com.fantacalcio.fantaschedina.exception.RegistrationException;
 import com.fantacalcio.fantaschedina.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -30,17 +32,23 @@ public class InviteService {
     private final PasswordEncoder passwordEncoder;
 
     public void createInvite(Long leagueId, String email) {
+        log.debug("createInvite: league {} email {}", leagueId, email);
         League league = leagueRepository.findById(leagueId)
-            .orElseThrow(() -> new IllegalArgumentException("Lega non trovata"));
+            .orElseThrow(() -> {
+                log.warn("createInvite: rejected — league {} not found", leagueId);
+                return new IllegalArgumentException("Lega non trovata");
+            });
 
         Long existingUserId = userRepository.findByEmail(email)
             .map(User::getId)
             .orElse(null);
 
         if (existingUserId != null && leagueMembershipRepository.existsByLeagueIdAndUserId(leagueId, existingUserId)) {
+            log.warn("createInvite: rejected — user {} already member of league {}", existingUserId, leagueId);
             throw new IllegalArgumentException("Questo utente è già membro di questa lega.");
         }
         if (inviteRepository.existsByLeagueIdAndEmailAndStatus(leagueId, email, InviteStatus.PENDING)) {
+            log.warn("createInvite: rejected — pending invite already exists for {} on league {}", email, leagueId);
             throw new IllegalArgumentException("Esiste già un invito in sospeso per questa email su questa lega.");
         }
 
@@ -54,6 +62,7 @@ public class InviteService {
             .build();
 
         invite = inviteRepository.save(invite);
+        log.info("createInvite: invite {} created for {} on league {}", invite.getId(), email, leagueId);
         notificationService.sendInviteEmail(invite, league);
     }
 
@@ -68,15 +77,18 @@ public class InviteService {
             .orElseThrow(() -> new InvalidInviteException("Token non valido o inesistente"));
 
         if (invite.getStatus() == InviteStatus.USED) {
+            log.warn("findValidInvite: rejected — invite {} already used", invite.getId());
             throw new InvalidInviteException("Questo invito è già stato utilizzato");
         }
         if (invite.getStatus() == InviteStatus.EXPIRED || invite.getExpiresAt().isBefore(LocalDateTime.now())) {
+            log.warn("findValidInvite: rejected — invite {} expired", invite.getId());
             throw new InvalidInviteException("Questo invito è scaduto");
         }
         return invite;
     }
 
     public void acceptForExistingUser(String token, Long userId, String fantaTeamName) {
+        log.debug("acceptForExistingUser: user {}", userId);
         Invite invite;
         try {
             invite = findValidInvite(token);
@@ -85,23 +97,29 @@ public class InviteService {
         }
 
         if (!userId.equals(invite.getUserId())) {
+            log.warn("acceptForExistingUser: rejected — invite {} targets user {} but current user is {}", invite.getId(), invite.getUserId(), userId);
             throw new InviteActionException("Questo invito non è destinato a te");
         }
         if (leagueMembershipRepository.existsByLeagueIdAndUserId(invite.getLeagueId(), userId)) {
+            log.warn("acceptForExistingUser: rejected — user {} already member of league {}", userId, invite.getLeagueId());
             throw new InviteActionException("Sei già membro di questa lega");
         }
 
         createMembershipAndTeam(invite.getLeagueId(), userId, fantaTeamName);
         markAsUsed(invite, userId);
+        log.info("acceptForExistingUser: user {} joined league {} via invite {}", userId, invite.getLeagueId(), invite.getId());
     }
 
     public void acceptForNewUser(String token, String username, String password, String fantaTeamName) {
+        log.debug("acceptForNewUser: username \"{}\"", username);
         Invite invite = findValidInvite(token);
 
         if (userRepository.existsByUsername(username)) {
+            log.warn("acceptForNewUser: rejected — username \"{}\" already in use", username);
             throw new RegistrationException("Username già in uso", token);
         }
         if (userRepository.existsByEmail(invite.getEmail())) {
+            log.warn("acceptForNewUser: rejected — email already has an account (invite {})", invite.getId());
             throw new RegistrationException("Esiste già un account con questa email", token);
         }
 
@@ -116,6 +134,7 @@ public class InviteService {
 
         createMembershipAndTeam(invite.getLeagueId(), user.getId(), fantaTeamName);
         markAsUsed(invite, user.getId());
+        log.info("acceptForNewUser: new user {} (\"{}\") joined league {} via invite {}", user.getId(), username, invite.getLeagueId(), invite.getId());
     }
 
     private void createMembershipAndTeam(Long leagueId, Long userId, String fantaTeamName) {
@@ -147,16 +166,23 @@ public class InviteService {
             .name(fantaTeamName)
             .build();
         fantaTeamRepository.save(team);
+        log.debug("createMembershipAndTeam: league {} user {} membership {} initialBalance {}", leagueId, userId, membership.getId(), initialBalance);
     }
 
     public void revokeInvite(Long inviteId) {
+        log.debug("revokeInvite: invite {}", inviteId);
         Invite invite = inviteRepository.findById(inviteId)
-            .orElseThrow(() -> new IllegalArgumentException("Invito non trovato"));
+            .orElseThrow(() -> {
+                log.warn("revokeInvite: rejected — invite {} not found", inviteId);
+                return new IllegalArgumentException("Invito non trovato");
+            });
         if (invite.getStatus() != InviteStatus.PENDING) {
+            log.warn("revokeInvite: rejected — invite {} is not PENDING (status={})", inviteId, invite.getStatus());
             throw new IllegalStateException("Solo gli inviti PENDING possono essere revocati");
         }
         invite.setStatus(InviteStatus.EXPIRED);
         inviteRepository.save(invite);
+        log.info("revokeInvite: invite {} revoked", inviteId);
     }
 
     private void markAsUsed(Invite invite, Long userId) {

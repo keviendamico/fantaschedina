@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.service.LeagueService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/leagues")
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class AdminLeagueController {
 
     @GetMapping
     public String list(@AuthenticationPrincipal UserDetails user, Model model) {
+        log.debug("list: admin {}", user.getUsername());
         model.addAttribute("leagues", leagueService.findAllForAdmin(userService.getUserId(user.getUsername())));
         return "admin/leagues/list";
     }
@@ -42,9 +45,11 @@ public class AdminLeagueController {
                          @AuthenticationPrincipal UserDetails user,
                          RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            log.warn("create: rejected — validation errors for league \"{}\"", leagueRequest.getName());
             return "admin/leagues/form";
         }
         var league = leagueService.create(leagueRequest, userService.getUserId(user.getUsername()));
+        log.info("create: league {} \"{}\" created by admin {}", league.getId(), league.getName(), user.getUsername());
         redirectAttributes.addFlashAttribute("success", "Lega creata con successo");
         return "redirect:/admin/leagues/" + league.getId();
     }
@@ -53,6 +58,7 @@ public class AdminLeagueController {
     public String detail(@PathVariable Long id,
                          @AuthenticationPrincipal UserDetails user,
                          Model model) {
+        log.debug("detail: league {}", id);
         model.addAttribute("league", leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername())));
         model.addAttribute("betTemplateForm", betTemplateService.buildForm(id));
         model.addAttribute("jackpot", leagueService.getJackpot(id));
@@ -85,11 +91,13 @@ public class AdminLeagueController {
                          Model model,
                          RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            log.warn("update: rejected — validation errors for league {}", id);
             model.addAttribute("leagueId", id);
             return "admin/leagues/form";
         }
         leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.update(id, leagueRequest);
+        log.info("update: league {} updated", id);
         redirectAttributes.addFlashAttribute("success", "Lega aggiornata");
         return "redirect:/admin/leagues/" + id;
     }
@@ -100,6 +108,7 @@ public class AdminLeagueController {
                            RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.activate(id);
+        log.info("activate: league {} activated", id);
         redirectAttributes.addFlashAttribute("success", "Lega attivata");
         return "redirect:/admin/leagues/" + id;
     }
@@ -110,6 +119,7 @@ public class AdminLeagueController {
                         RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.close(id);
+        log.info("close: league {} closed", id);
         redirectAttributes.addFlashAttribute("success", "Lega chiusa");
         return "redirect:/admin/leagues/" + id;
     }
@@ -121,6 +131,7 @@ public class AdminLeagueController {
                                 RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         leagueService.adjustJackpot(id, newAmount);
+        log.info("adjustJackpot: league {} jackpot adjusted to {}", id, newAmount);
         redirectAttributes.addFlashAttribute("success", "Jackpot aggiornato");
         return "redirect:/admin/leagues/" + id;
     }
@@ -132,6 +143,7 @@ public class AdminLeagueController {
                                   RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(id, userService.getUserId(user.getUsername()));
         betTemplateService.save(id, betTemplateForm);
+        log.info("saveBetTemplate: league {} bet template saved", id);
         redirectAttributes.addFlashAttribute("success", "Template schedina salvato");
         return "redirect:/admin/leagues/" + id;
     }

@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.exception.InvalidPasswordResetException;
 import com.fantacalcio.fantaschedina.repository.PasswordResetTokenRepository;
 import com.fantacalcio.fantaschedina.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -27,6 +29,9 @@ public class PasswordResetService {
     public void requestReset(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) {
+            // Do not log a "user not found" outcome: the caller's response is intentionally
+            // identical either way, to prevent user enumeration via logs or timing.
+            log.debug("requestReset: no user found for {}", email);
             return;
         }
 
@@ -43,6 +48,7 @@ public class PasswordResetService {
             .status(PasswordResetStatus.PENDING)
             .build();
         resetToken = passwordResetTokenRepository.save(resetToken);
+        log.info("requestReset: reset token created for user {}", user.getId());
 
         notificationService.sendPasswordResetEmail(user, resetToken.getToken());
     }
@@ -53,9 +59,11 @@ public class PasswordResetService {
             .orElseThrow(() -> new InvalidPasswordResetException("Link non valido o inesistente"));
 
         if (resetToken.getStatus() == PasswordResetStatus.USED) {
+            log.warn("findValidToken: rejected — token for user {} already used", resetToken.getUserId());
             throw new InvalidPasswordResetException("Questo link è già stato utilizzato");
         }
         if (resetToken.getStatus() == PasswordResetStatus.EXPIRED || resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            log.warn("findValidToken: rejected — token for user {} expired", resetToken.getUserId());
             throw new InvalidPasswordResetException("Questo link è scaduto");
         }
         return resetToken;
@@ -72,5 +80,6 @@ public class PasswordResetService {
         resetToken.setStatus(PasswordResetStatus.USED);
         resetToken.setUsedAt(LocalDateTime.now());
         passwordResetTokenRepository.save(resetToken);
+        log.info("resetPassword: password reset for user {}", user.getId());
     }
 }

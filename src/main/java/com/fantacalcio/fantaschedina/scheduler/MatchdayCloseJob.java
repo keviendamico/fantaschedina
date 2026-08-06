@@ -1,6 +1,7 @@
 package com.fantacalcio.fantaschedina.scheduler;
 
 import com.fantacalcio.fantaschedina.service.MatchdayClosingService;
+import com.fantacalcio.fantaschedina.util.CorrelationId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.Job;
@@ -20,6 +21,10 @@ public class MatchdayCloseJob implements Job {
 
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
+        CorrelationId.runAsJob(() -> doExecute(context));
+    }
+
+    private void doExecute(JobExecutionContext context) throws JobExecutionException {
         JobDataMap data = context.getMergedJobDataMap();
         Long matchdayId = data.getLong(MATCHDAY_ID_KEY);
         log.debug("MatchdayCloseJob: firing for matchday {} (trigger={})", matchdayId, context.getTrigger().getKey());

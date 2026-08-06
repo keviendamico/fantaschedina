@@ -1,21 +1,18 @@
 package com.fantacalcio.fantaschedina.controller.admin;
 
-import com.fantacalcio.fantaschedina.domain.entity.League;
 import com.fantacalcio.fantaschedina.dto.InviteRequest;
 import com.fantacalcio.fantaschedina.service.InviteService;
 import com.fantacalcio.fantaschedina.service.LeagueService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
+@Slf4j
 @Controller
 @RequestMapping("/admin/invites")
 @RequiredArgsConstructor
@@ -26,6 +23,7 @@ public class AdminInviteController {
 
     @GetMapping
     public String listInvites(Model model) {
+        log.debug("listInvites");
         populateLeagueModel(model);
         model.addAttribute("invites", inviteService.findAll());
         model.addAttribute("inviteRequest", new InviteRequest());
@@ -38,11 +36,13 @@ public class AdminInviteController {
                              Model model,
                              RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
+            log.warn("sendInvite: rejected — validation errors for league {} email {}", inviteRequest.getLeagueId(), inviteRequest.getEmail());
             populateLeagueModel(model);
             model.addAttribute("invites", inviteService.findAll());
             return "admin/invites";
         }
         inviteService.createInvite(inviteRequest.getLeagueId(), inviteRequest.getEmail());
+        log.info("sendInvite: invite sent to {} for league {}", inviteRequest.getEmail(), inviteRequest.getLeagueId());
         redirectAttributes.addFlashAttribute("success", "Invito inviato a " + inviteRequest.getEmail());
         return "redirect:/admin/invites";
     }
@@ -50,15 +50,13 @@ public class AdminInviteController {
     @PostMapping("/{id}/revoke")
     public String revokeInvite(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         inviteService.revokeInvite(id);
+        log.info("revokeInvite: invite {} revoked", id);
         redirectAttributes.addFlashAttribute("success", "Invito revocato");
         return "redirect:/admin/invites";
     }
 
     private void populateLeagueModel(Model model) {
-        List<League> leagues = leagueService.findAll();
-        Map<Long, String> leagueNames = leagues.stream()
-            .collect(Collectors.toMap(League::getId, l -> l.getName() + " (" + l.getSeason() + ")"));
-        model.addAttribute("leagues", leagues);
-        model.addAttribute("leagueNames", leagueNames);
+        model.addAttribute("leagues", leagueService.findAll());
+        model.addAttribute("leagueNames", leagueService.getLeagueNames());
     }
 }

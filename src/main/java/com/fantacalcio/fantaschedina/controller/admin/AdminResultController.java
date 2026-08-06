@@ -8,6 +8,7 @@ import com.fantacalcio.fantaschedina.service.MatchdayProcessingService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/leagues/{leagueId}/matchdays/{matchdayId}/results")
 @RequiredArgsConstructor
@@ -30,10 +32,12 @@ public class AdminResultController {
                        @PathVariable Long matchdayId,
                        @AuthenticationPrincipal UserDetails user,
                        Model model) {
+        log.debug("form: league {} matchday {}", leagueId, matchdayId);
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
 
         if (matchday.getStatus() != MatchdayStatus.CLOSED) {
+            log.warn("form: rejected — matchday {} is not CLOSED (status={})", matchdayId, matchday.getStatus());
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }
 
@@ -50,8 +54,10 @@ public class AdminResultController {
                          @AuthenticationPrincipal UserDetails user,
                          @ModelAttribute MatchdayResultRequest request,
                          RedirectAttributes redirectAttributes) {
+        log.info("submit: league {} matchday {} results submitted by admin {}", leagueId, matchdayId, user.getUsername());
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = processingService.loadResults(matchdayId, request);
+        log.info("submit: matchday {} processed successfully", matchdayId);
         redirectAttributes.addFlashAttribute("success",
                 "Risultati giornata " + matchday.getNumber() + " caricati e schedine elaborate.");
         return "redirect:/admin/leagues/" + leagueId + "/calendar";

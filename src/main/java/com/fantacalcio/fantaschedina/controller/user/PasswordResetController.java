@@ -5,12 +5,14 @@ import com.fantacalcio.fantaschedina.dto.ResetPasswordRequest;
 import com.fantacalcio.fantaschedina.service.PasswordResetService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class PasswordResetController {
@@ -34,6 +36,9 @@ public class PasswordResetController {
             return "forgot-password";
         }
 
+        // Response is identical whether the email exists or not (prevents user enumeration);
+        // log at INFO regardless so the request is still traceable.
+        log.info("forgotPassword: reset requested for {}", forgotPasswordRequest.getEmail());
         passwordResetService.requestReset(forgotPasswordRequest.getEmail());
         redirectAttributes.addFlashAttribute("sent", true);
         return "redirect:/forgot-password";
@@ -58,11 +63,13 @@ public class PasswordResetController {
         }
 
         if (result.hasErrors()) {
+            log.warn("resetPassword: rejected — validation errors");
             model.addAttribute("token", token);
             return "reset-password";
         }
 
         passwordResetService.resetPassword(token, resetPasswordRequest.getPassword());
+        log.info("resetPassword: password reset completed");
         return "redirect:/login?resetSuccess";
     }
 }

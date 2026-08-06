@@ -5,6 +5,7 @@ import com.fantacalcio.fantaschedina.service.BetService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 @RequestMapping("/leagues")
 @RequiredArgsConstructor
@@ -29,6 +30,7 @@ public class BetSlipDetailController {
     public String detail(@PathVariable Long leagueId, @PathVariable Long slipId,
                          Authentication authentication, Model model) {
         Long userId = userService.getUserId(authentication.getName());
+        log.debug("detail: user {} league {} slip {}", userId, leagueId, slipId);
 
         League league = matchdayService.getLeagueForMember(leagueId, userId);
 
@@ -38,8 +40,7 @@ public class BetSlipDetailController {
         List<BetPick> picks = betService.findPicks(slipId);
         List<MatchdayFixture> fixtures = matchdayService.getFixtures(slip.getMatchdayId());
         Map<Long, String> teamNames = matchdayService.getTeamNames(leagueId);
-        Map<Long, BetPick> picksByFixture = picks.stream()
-                .collect(Collectors.toMap(BetPick::getMatchdayFixtureId, p -> p));
+        Map<Long, BetPick> picksByFixture = betService.indexByFixture(picks);
         FantaTeam myTeam = matchdayService.getFantaTeam(leagueId, userId).orElse(null);
 
         model.addAttribute("league", league);

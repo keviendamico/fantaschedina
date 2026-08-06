@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.dto.BetTemplateRowRequest;
 import com.fantacalcio.fantaschedina.dto.PickSlot;
 import com.fantacalcio.fantaschedina.repository.BetTemplateRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -70,6 +72,7 @@ public class BetTemplateService {
     }
 
     public void save(Long leagueId, BetTemplateForm form) {
+        log.debug("save: league {}", leagueId);
         betTemplateRepository.deleteByLeagueId(leagueId);
 
         int orderIndex = 0;
@@ -89,5 +92,6 @@ public class BetTemplateService {
                 betTemplateRepository.save(bt);
             }
         }
+        log.info("save: league {} bet template saved ({} row(s))", leagueId, orderIndex);
     }
 }

@@ -5,6 +5,7 @@ import com.fantacalcio.fantaschedina.service.AdminLeagueMemberService;
 import com.fantacalcio.fantaschedina.service.LeagueService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/leagues/{leagueId}/members")
 @RequiredArgsConstructor
@@ -25,6 +27,7 @@ public class AdminLeagueMemberController {
     public String members(@PathVariable Long leagueId,
                           @AuthenticationPrincipal UserDetails user,
                           Model model) {
+        log.debug("members: league {}", leagueId);
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         model.addAttribute("league", leagueService.findById(leagueId));
         model.addAttribute("members", memberService.getMembers(leagueId));
@@ -41,6 +44,7 @@ public class AdminLeagueMemberController {
                                RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         memberService.adjustMemberBalance(membershipId, delta, note);
+        log.info("adjustMember: membership {} (league {}) adjusted by {}, note=\"{}\"", membershipId, leagueId, delta, note);
         redirectAttributes.addFlashAttribute("success", "Crediti aggiornati.");
         return "redirect:/admin/leagues/" + leagueId + "/members";
     }
@@ -50,6 +54,7 @@ public class AdminLeagueMemberController {
                                @PathVariable Long membershipId,
                                @AuthenticationPrincipal UserDetails user,
                                Model model) {
+        log.debug("editUserForm: league {} membership {}", leagueId, membershipId);
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         LeagueMembership membership = memberService.getMembershipForLeague(leagueId, membershipId);
 
@@ -70,6 +75,7 @@ public class AdminLeagueMemberController {
         LeagueMembership membership = memberService.getMembershipForLeague(leagueId, membershipId);
 
         userService.adminUpdateUser(membership.getUserId(), email, notificationsEnabled);
+        log.info("editUser: membership {} (league {}) user updated, notificationsEnabled={}", membershipId, leagueId, notificationsEnabled);
         redirectAttributes.addFlashAttribute("success", "Utente aggiornato.");
         return "redirect:/admin/leagues/" + leagueId + "/members";
     }

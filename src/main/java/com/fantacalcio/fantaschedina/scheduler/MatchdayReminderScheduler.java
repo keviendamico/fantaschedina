@@ -15,6 +15,7 @@ import com.fantacalcio.fantaschedina.repository.UserRepository;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.NotificationService;
 import com.fantacalcio.fantaschedina.util.AppClock;
+import com.fantacalcio.fantaschedina.util.CorrelationId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,6 +51,10 @@ public class MatchdayReminderScheduler {
 
     @Scheduled(cron = "0 * * * * *")
     public void sendPreDeadlineReminders() {
+        CorrelationId.runAsJob(this::doSendPreDeadlineReminders);
+    }
+
+    private void doSendPreDeadlineReminders() {
         LocalDateTime now = AppClock.now();
 
         List<Matchday> openMatchdays = matchdayRepository.findByStatus(MatchdayStatus.OPEN);

@@ -1,11 +1,11 @@
 package com.fantacalcio.fantaschedina.controller.user;
 
 import com.fantacalcio.fantaschedina.domain.entity.*;
-import com.fantacalcio.fantaschedina.domain.enums.MatchdayStatus;
 import com.fantacalcio.fantaschedina.service.BetService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+@Slf4j
 @Controller
 @RequestMapping("/leagues")
 @RequiredArgsConstructor
@@ -30,26 +30,18 @@ public class UserMatchdayController {
     @GetMapping("/{leagueId}/matchdays")
     public String list(@PathVariable Long leagueId, Authentication authentication, Model model) {
         Long userId = userService.getUserId(authentication.getName());
+        log.debug("list: user {} league {}", userId, leagueId);
         League league = matchdayService.getLeagueForMember(leagueId, userId);
 
         List<Matchday> matchdays = matchdayService.getMatchdays(leagueId);
-        Map<Long, LocalDateTime> deadlines = matchdays.stream()
-                .filter(m -> matchdayService.effectiveDeadline(m, league.getBetDeadlineMinutes()) != null)
-                .collect(Collectors.toMap(
-                        Matchday::getId,
-                        m -> matchdayService.effectiveDeadline(m, league.getBetDeadlineMinutes())
-                ));
+        Map<Long, LocalDateTime> deadlines = matchdayService.getDeadlines(matchdays, league.getBetDeadlineMinutes());
 
         FantaTeam myTeam = matchdayService.getFantaTeam(leagueId, userId).orElse(null);
         Map<Long, BetSlip> slipsByMatchday = myTeam != null
-                ? betService.findSlipsForTeam(myTeam.getId()).stream()
-                        .collect(Collectors.toMap(BetSlip::getMatchdayId, s -> s))
+                ? betService.findSlipsByMatchday(myTeam.getId())
                 : Map.of();
 
-        Matchday nextMatchday = matchdays.stream()
-                .filter(m -> m.getStatus() == MatchdayStatus.OPEN)
-                .findFirst()
-                .orElse(null);
+        Matchday nextMatchday = matchdayService.getNextOpenMatchday(matchdays).orElse(null);
 
         model.addAttribute("league", league);
         model.addAttribute("matchdays", matchdays);
@@ -65,6 +57,7 @@ public class UserMatchdayController {
     public String detail(@PathVariable Long leagueId, @PathVariable Long matchdayId,
                          Authentication authentication, Model model) {
         Long userId = userService.getUserId(authentication.getName());
+        log.debug("detail: user {} league {} matchday {}", userId, leagueId, matchdayId);
         League league = matchdayService.getLeagueForMember(leagueId, userId);
 
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
@@ -76,8 +69,7 @@ public class UserMatchdayController {
         FantaTeam myTeam = matchdayService.getFantaTeam(leagueId, userId).orElse(null);
         BetSlip mySlip = myTeam != null ? betService.findSlip(myTeam.getId(), matchdayId) : null;
         List<BetPick> myPicks = mySlip != null ? betService.findPicks(mySlip.getId()) : List.of();
-        Map<Long, BetPick> picksByFixture = myPicks.stream()
-                .collect(Collectors.toMap(BetPick::getMatchdayFixtureId, p -> p));
+        Map<Long, BetPick> picksByFixture = mySlip != null ? betService.findPicksByFixture(mySlip.getId()) : Map.of();
 
         model.addAttribute("league", league);
         model.addAttribute("matchday", matchday);

@@ -5,11 +5,13 @@ import com.fantacalcio.fantaschedina.exception.InvalidInviteException;
 import com.fantacalcio.fantaschedina.service.InviteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class RegisterController {
@@ -35,6 +37,7 @@ public class RegisterController {
         }
 
         if (result.hasErrors()) {
+            log.warn("register: rejected — validation errors for username \"{}\"", registerRequest.getUsername());
             model.addAttribute("token", token);
             return "register";
         }
@@ -45,6 +48,7 @@ public class RegisterController {
             registerRequest.getPassword(),
             registerRequest.getFantaTeamName()
         );
+        log.info("register: new user \"{}\" registered via invite", registerRequest.getUsername());
         return "redirect:/login?registered";
     }
 }

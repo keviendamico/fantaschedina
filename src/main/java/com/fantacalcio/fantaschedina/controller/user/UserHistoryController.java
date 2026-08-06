@@ -5,6 +5,7 @@ import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserHistoryService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+@Slf4j
 @Controller
 @RequestMapping("/leagues")
 @RequiredArgsConstructor
@@ -24,6 +26,7 @@ public class UserHistoryController {
     @GetMapping("/{leagueId}/history")
     public String history(@PathVariable Long leagueId, Authentication authentication, Model model) {
         Long userId = userService.getUserId(authentication.getName());
+        log.debug("history: user {} league {}", userId, leagueId);
 
         model.addAttribute("league", matchdayService.getLeagueForMember(leagueId, userId));
 

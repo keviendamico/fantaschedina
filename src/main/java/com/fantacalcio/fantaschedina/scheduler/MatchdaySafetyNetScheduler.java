@@ -8,6 +8,7 @@ import com.fantacalcio.fantaschedina.repository.MatchdayRepository;
 import com.fantacalcio.fantaschedina.service.MatchdayClosingService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.util.AppClock;
+import com.fantacalcio.fantaschedina.util.CorrelationId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,6 +33,10 @@ public class MatchdaySafetyNetScheduler {
      */
     @Scheduled(fixedDelay = 60_000)
     public void closeOverdueMatchdays() {
+        CorrelationId.runAsJob(this::doCloseOverdueMatchdays);
+    }
+
+    private void doCloseOverdueMatchdays() {
         List<Matchday> openMatchdays = matchdayRepository.findByStatus(MatchdayStatus.OPEN);
         log.debug("Safety net tick: {} OPEN matchday(s) found", openMatchdays.size());
         for (Matchday matchday : openMatchdays) {

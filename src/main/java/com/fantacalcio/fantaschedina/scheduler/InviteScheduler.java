@@ -2,6 +2,7 @@ package com.fantacalcio.fantaschedina.scheduler;
 
 import com.fantacalcio.fantaschedina.domain.enums.InviteStatus;
 import com.fantacalcio.fantaschedina.repository.InviteRepository;
+import com.fantacalcio.fantaschedina.util.CorrelationId;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -20,11 +21,13 @@ public class InviteScheduler {
     @Scheduled(cron = "0 0 1 * * *")
     @Transactional
     public void expireInvites() {
+        CorrelationId.runAsJob(this::doExpireInvites);
+    }
+
+    private void doExpireInvites() {
         var expired = inviteRepository.findByStatusAndExpiresAtBefore(InviteStatus.PENDING, LocalDateTime.now());
         expired.forEach(invite -> invite.setStatus(InviteStatus.EXPIRED));
         inviteRepository.saveAll(expired);
-        if (!expired.isEmpty()) {
-            log.info("Expired {} pending invites", expired.size());
-        }
+        log.info("Expired {} pending invites", expired.size());
     }
 }

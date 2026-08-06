@@ -8,6 +8,7 @@ import com.fantacalcio.fantaschedina.service.LeagueService;
 import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/leagues/{leagueId}")
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class AdminBetSlipController {
                             @PathVariable Long matchdayId,
                             @AuthenticationPrincipal UserDetails user,
                             Model model) {
+        log.debug("listSlips: league {} matchday {}", leagueId, matchdayId);
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
         List<BetSlip> slips = adminBetSlipService.getSlipsForMatchday(matchdayId);
@@ -50,6 +53,7 @@ public class AdminBetSlipController {
                            @PathVariable Long slipId,
                            @AuthenticationPrincipal UserDetails user,
                            Model model) {
+        log.debug("editForm: league {} slip {}", leagueId, slipId);
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         BetSlip slip = adminBetSlipService.getSlip(slipId);
         Matchday matchday = matchdayService.getMatchday(slip.getMatchdayId(), leagueId);
@@ -72,6 +76,7 @@ public class AdminBetSlipController {
                            @AuthenticationPrincipal UserDetails userDetails,
                            RedirectAttributes redirectAttributes) {
         Long adminUserId = userService.getUserId(userDetails.getUsername());
+        log.info("saveEdit: admin {} submitting edit for slip {} (league {})", adminUserId, slipId, leagueId);
         leagueService.findByIdForAdmin(leagueId, adminUserId);
         BetSlip slip = adminBetSlipService.getSlip(slipId);
         adminBetSlipService.modifySlip(slipId, adminUserId, request, note);

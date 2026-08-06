@@ -3,12 +3,14 @@ package com.fantacalcio.fantaschedina.controller;
 import com.fantacalcio.fantaschedina.service.UserDashboardService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class HomeController {
@@ -30,6 +32,7 @@ public class HomeController {
             return "redirect:/admin/dashboard";
         }
         Long userId = userService.getUserId(authentication.getName());
+        log.debug("dashboard: user {}", userId);
         model.addAttribute("leagueCards", userDashboardService.buildCards(userId));
         return "dashboard";
     }

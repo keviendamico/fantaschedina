@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.dto.MatchdayResultRequest;
 import com.fantacalcio.fantaschedina.repository.*;
 import com.fantacalcio.fantaschedina.util.OutcomeEvaluator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MatchdayProcessingService {
@@ -36,14 +38,17 @@ public class MatchdayProcessingService {
 
     @Transactional
     public Matchday loadResults(Long matchdayId, MatchdayResultRequest request) {
+        log.debug("loadResults: matchday {}", matchdayId);
         Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
 
         if (matchday.getStatus() != MatchdayStatus.CLOSED) {
+            log.warn("loadResults: rejected — matchday {} is not CLOSED (status={})", matchdayId, matchday.getStatus());
             throw new IllegalStateException("La giornata non è in stato CLOSED.");
         }
 
         for (FixtureResultRequest f : request.getFixtures()) {
             if (f.getHomeScore() == null || f.getAwayScore() == null) {
+                log.warn("loadResults: rejected — missing score for fixture {} in matchday {}", f.getFixtureId(), matchdayId);
                 throw new IllegalArgumentException("Inserisci tutti i risultati prima di confermare.");
             }
         }
@@ -62,6 +67,7 @@ public class MatchdayProcessingService {
 
         matchday.setStatus(MatchdayStatus.RESULTS_LOADED);
         matchdayRepository.save(matchday);
+        log.info("loadResults: matchday {} results loaded ({} fixture(s)), status -> RESULTS_LOADED", matchdayId, request.getFixtures().size());
 
         process(matchdayId);
 
@@ -70,6 +76,7 @@ public class MatchdayProcessingService {
 
     @Transactional
     public void process(Long matchdayId) {
+        log.debug("process: matchday {}", matchdayId);
         Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
         League league = leagueRepository.findById(matchday.getLeagueId()).orElseThrow();
 
@@ -108,16 +115,19 @@ public class MatchdayProcessingService {
             slip.setStatus(allCorrect ? BetSlipStatus.WON : BetSlipStatus.LOST);
             betSlipRepository.save(slip);
         }
+        log.debug("process: matchday {} evaluated {} slip(s)", matchdayId, slips.size());
 
         // Jackpot distribution
         Jackpot jackpot = jackpotRepository.findByLeagueId(league.getId()).orElseThrow();
         List<BetSlip> winners = slips.stream()
                 .filter(s -> s.getStatus() == BetSlipStatus.WON)
-                .collect(Collectors.toList());
+                .toList();
 
         if (!winners.isEmpty()) {
             int share = jackpot.getCurrentAmount() / winners.size();
             int remainder = jackpot.getCurrentAmount() % winners.size();
+            log.info("process: matchday {} has {} winner(s), jackpot {} -> share {} each, remainder {}",
+                    matchdayId, winners.size(), jackpot.getCurrentAmount(), share, remainder);
             List<String> winnerTeamNames = new ArrayList<>();
             for (BetSlip winner : winners) {
                 FantaTeam team = fantaTeamRepository.findById(winner.getFantaTeamId()).orElseThrow();
@@ -138,6 +148,8 @@ public class MatchdayProcessingService {
             }
             jackpot.setCurrentAmount(league.getJackpotStart() + remainder);
             notifyJackpotWon(league, matchday, winnerTeamNames, share);
+        } else {
+            log.debug("process: matchday {} has no winners, jackpot unchanged at {}", matchdayId, jackpot.getCurrentAmount());
         }
         jackpot.setLastUpdatedMatchdayId(matchdayId);
         jackpotRepository.save(jackpot);
@@ -145,6 +157,7 @@ public class MatchdayProcessingService {
         // Matchday → PROCESSED
         matchday.setStatus(MatchdayStatus.PROCESSED);
         matchdayRepository.save(matchday);
+        log.info("process: matchday {} processed, status -> PROCESSED", matchdayId);
 
         notifyResultsAvailable(league, matchday);
 

@@ -7,6 +7,7 @@ import com.fantacalcio.fantaschedina.service.MatchdayService;
 import com.fantacalcio.fantaschedina.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -18,6 +19,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.util.List;
 
+@Slf4j
 @Controller
 @RequestMapping("/admin/leagues/{leagueId}/calendar")
 @RequiredArgsConstructor
@@ -34,6 +36,7 @@ public class AdminCalendarController {
     public String calendar(@PathVariable Long leagueId,
                            @AuthenticationPrincipal UserDetails user,
                            Model model) {
+        log.debug("calendar: league {}", leagueId);
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         var matchdays = calendarService.findMatchdaysByLeague(leagueId);
         int nextNumber = matchdays.isEmpty() ? 1 : matchdays.getLast().getNumber() + 1;
@@ -54,12 +57,15 @@ public class AdminCalendarController {
                             RedirectAttributes redirectAttributes) throws IOException {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         if (file.isEmpty()) {
+            log.warn("importCsv: rejected — empty file for league {}", leagueId);
             redirectAttributes.addFlashAttribute("error", "Seleziona un file CSV");
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }
         byte[] csvBytes = file.getBytes();
+        log.info("importCsv: league {} importing {} ({} bytes)", leagueId, file.getOriginalFilename(), csvBytes.length);
         List<Integer> conflicts = calendarService.importCsv(leagueId, csvBytes, false);
         if (!conflicts.isEmpty()) {
+            log.debug("importCsv: league {} has {} conflicting matchday(s), awaiting confirmation", leagueId, conflicts.size());
             session.setAttribute(SESSION_KEY, csvBytes);
             redirectAttributes.addFlashAttribute("conflictMatchdays", conflicts);
         } else {
@@ -77,11 +83,13 @@ public class AdminCalendarController {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         byte[] csvBytes = (byte[]) session.getAttribute(SESSION_KEY);
         if (csvBytes == null) {
+            log.warn("confirmImport: rejected — session expired for league {}", leagueId);
             redirectAttributes.addFlashAttribute("error", "Sessione scaduta, ricarica il CSV");
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }
         session.removeAttribute(SESSION_KEY);
         calendarService.importCsv(leagueId, csvBytes, overwrite);
+        log.info("confirmImport: league {} calendar import confirmed (overwrite={})", leagueId, overwrite);
         String msg = overwrite ? "Calendario importato con sovrascrittura" : "Calendario importato (giornate esistenti saltate)";
         redirectAttributes.addFlashAttribute("success", msg);
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
@@ -94,6 +102,7 @@ public class AdminCalendarController {
                               RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         calendarService.addMatchday(leagueId, number);
+        log.info("addMatchday: league {} matchday {} created", leagueId, number);
         redirectAttributes.addFlashAttribute("success", "Giornata " + number + " creata");
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
     }
@@ -107,6 +116,7 @@ public class AdminCalendarController {
                              RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         calendarService.addFixture(leagueId, matchdayId, homeTeamId, awayTeamId);
+        log.info("addFixture: league {} matchday {} fixture {} vs {} added", leagueId, matchdayId, homeTeamId, awayTeamId);
         redirectAttributes.addFlashAttribute("success", "Partita aggiunta");
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
     }
@@ -117,6 +127,7 @@ public class AdminCalendarController {
                                      RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         calendarService.deleteLastMatchday(leagueId);
+        log.info("deleteLastMatchday: league {} last matchday deleted", leagueId);
         redirectAttributes.addFlashAttribute("success", "Giornata eliminata");
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
     }
@@ -129,6 +140,7 @@ public class AdminCalendarController {
                            RedirectAttributes redirectAttributes) {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         calendarService.scheduleMatchday(matchdayId, request);
+        log.info("schedule: league {} matchday {} startAt updated", leagueId, matchdayId);
         redirectAttributes.addFlashAttribute("success", "Date aggiornate");
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
     }
