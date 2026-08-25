@@ -59,6 +59,15 @@
                                class="btn btn-outline-secondary btn-sm">
                                 Modifica utente
                             </a>
+                            <button th:if="${row.fantaTeam() != null}"
+                                    type="button" class="btn btn-outline-secondary btn-sm"
+                                    data-bs-toggle="modal" data-bs-target="#teamNameModal"
+                                    th:data-membership-id="${row.membership().id}"
+                                    th:data-league-id="${league.id}"
+                                    th:data-username="${row.user().username}"
+                                    th:data-team-name="${row.fantaTeam().name}">
+                                Rinomina squadra
+                            </button>
                             <button type="button" class="btn btn-outline-primary btn-sm"
                                     data-bs-toggle="modal" data-bs-target="#adjustModal"
                                     th:data-membership-id="${row.membership().id}"
@@ -114,6 +123,38 @@
     </div>
 </div>
 
+<!-- Modal rinomina squadra -->
+<div class="modal fade" id="teamNameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Rinomina squadra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="teamNameForm" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <div class="modal-body">
+                    <p class="mb-3">
+                        Utente: <strong id="teamModalUsername"></strong>
+                    </p>
+                    <div class="mb-2">
+                        <label class="form-label fw-semibold">Nome squadra</label>
+                        <input type="text" name="name" id="teamModalName"
+                               class="form-control" maxlength="255" required>
+                        <div class="form-text">
+                            Il nuovo nome sostituisce il precedente anche nel calendario e nelle schedine già giocate.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Annulla</button>
+                    <button type="submit" class="btn btn-ft-green">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="container">
     <!-- Audit log -->
     <div class="card shadow-sm mt-4">
@@ -154,6 +195,14 @@
         document.getElementById('modalDelta').value = '';
         document.getElementById('adjustForm').action =
             '/admin/leagues/' + btn.dataset.leagueId + '/members/' + btn.dataset.membershipId + '/adjust';
+    });
+
+    document.getElementById('teamNameModal').addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+        document.getElementById('teamModalUsername').textContent = btn.dataset.username;
+        document.getElementById('teamModalName').value = btn.dataset.teamName;
+        document.getElementById('teamNameForm').action =
+            '/admin/leagues/' + btn.dataset.leagueId + '/members/' + btn.dataset.membershipId + '/team-name';
     });
 </script>
 </body>

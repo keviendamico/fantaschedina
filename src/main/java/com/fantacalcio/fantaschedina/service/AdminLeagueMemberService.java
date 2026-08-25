@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AdminLeagueMemberService {
 
+    private static final int MAX_TEAM_NAME_LENGTH = 255;
+
     private final LeagueMembershipRepository leagueMembershipRepository;
     private final FantaTeamRepository fantaTeamRepository;
     private final UserRepository userRepository;
@@ -79,6 +81,64 @@ public class AdminLeagueMemberService {
 
         log.info("adjustMemberBalance: membership {} balance {} -> {} (delta {}), note=\"{}\"",
                 membershipId, newBalance - delta, newBalance, delta, resolvedNote);
+    }
+
+    @Transactional
+    public void renameTeam(Long leagueId, Long membershipId, String newName) {
+        log.debug("renameTeam: league {} membership {}", leagueId, membershipId);
+        String resolvedName = newName != null ? newName.trim() : "";
+
+        if (resolvedName.isEmpty()) {
+            log.warn("renameTeam: rejected — empty name for membership {}", membershipId);
+            throw new IllegalArgumentException("Il nome della squadra non può essere vuoto.");
+        }
+        if (resolvedName.length() > MAX_TEAM_NAME_LENGTH) {
+            log.warn("renameTeam: rejected — name too long ({} chars) for membership {}", resolvedName.length(), membershipId);
+            throw new IllegalArgumentException("Il nome della squadra non può superare i " + MAX_TEAM_NAME_LENGTH + " caratteri.");
+        }
+
+        LeagueMembership membership = leagueMembershipRepository.findById(membershipId)
+                .orElseThrow(() -> {
+                    log.warn("renameTeam: rejected — membership {} not found", membershipId);
+                    return new IllegalArgumentException("Iscrizione non trovata.");
+                });
+        if (!membership.getLeagueId().equals(leagueId)) {
+            log.warn("renameTeam: rejected — membership {} does not belong to league {}", membershipId, leagueId);
+            throw new IllegalArgumentException("Iscrizione non appartenente a questa lega.");
+        }
+
+        FantaTeam team = fantaTeamRepository.findByLeagueMembershipId(membershipId)
+                .orElseThrow(() -> {
+                    log.warn("renameTeam: rejected — no team for membership {}", membershipId);
+                    return new IllegalArgumentException("Squadra non trovata.");
+                });
+
+        String previousName = team.getName();
+        if (previousName.equals(resolvedName)) {
+            log.debug("renameTeam: team {} name unchanged, skipping", team.getId());
+            return;
+        }
+
+        fantaTeamRepository.findByLeagueIdAndNameIgnoreCase(leagueId, resolvedName)
+                .filter(other -> !other.getId().equals(team.getId()))
+                .ifPresent(other -> {
+                    log.warn("renameTeam: rejected — name \"{}\" already used by team {} in league {}", resolvedName, other.getId(), leagueId);
+                    throw new IllegalArgumentException("Esiste già una squadra con questo nome in questa lega.");
+                });
+
+        team.setName(resolvedName);
+        fantaTeamRepository.save(team);
+
+        String note = "Nome squadra: " + previousName + " → " + resolvedName;
+        leagueAuditLogRepository.save(LeagueAuditLog.builder()
+                .leagueId(leagueId)
+                .type(AdminLogType.TEAM_RENAME)
+                .targetMembershipId(membershipId)
+                .note(note)
+                .createdAt(LocalDateTime.now())
+                .build());
+
+        log.info("renameTeam: team {} (league {}) renamed \"{}\" -> \"{}\"", team.getId(), leagueId, previousName, resolvedName);
     }
 
     @Transactional(readOnly = true)

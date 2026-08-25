@@ -49,6 +49,19 @@ public class AdminLeagueMemberController {
         return "redirect:/admin/leagues/" + leagueId + "/members";
     }
 
+    @PostMapping("/{membershipId}/team-name")
+    public String renameTeam(@PathVariable Long leagueId,
+                             @PathVariable Long membershipId,
+                             @AuthenticationPrincipal UserDetails user,
+                             @RequestParam String name,
+                             RedirectAttributes redirectAttributes) {
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
+        memberService.renameTeam(leagueId, membershipId, name);
+        log.info("renameTeam: membership {} (league {}) team renamed to \"{}\"", membershipId, leagueId, name);
+        redirectAttributes.addFlashAttribute("success", "Nome squadra aggiornato.");
+        return "redirect:/admin/leagues/" + leagueId + "/members";
+    }
+
     @GetMapping("/{membershipId}/edit-user")
     public String editUserForm(@PathVariable Long leagueId,
                                @PathVariable Long membershipId,

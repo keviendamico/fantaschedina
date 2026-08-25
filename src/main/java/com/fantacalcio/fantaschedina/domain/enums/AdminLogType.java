@@ -2,7 +2,8 @@ package com.fantacalcio.fantaschedina.domain.enums;
 
 public enum AdminLogType {
     JACKPOT_ADJUST("Modifica jackpot"),
-    CREDIT_ADJUST("Rettifica crediti");
+    CREDIT_ADJUST("Rettifica crediti"),
+    TEAM_RENAME("Rinomina squadra");
 
     private final String label;
 
