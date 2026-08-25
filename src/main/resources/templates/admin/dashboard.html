@@ -33,7 +33,8 @@
                                   th:text="${card.currentMatchday.status.label}"
                                   th:classappend="${card.currentMatchday.status.name() == 'OPEN'} ? 'bg-success' :
                                                   (${card.currentMatchday.status.name() == 'CLOSED'} ? 'badge-ft-orange' :
-                                                  'bg-secondary')">
+                                                  (${card.currentMatchday.status.name() == 'AWAITING_RECOVERY'} ? 'bg-danger' :
+                                                  'bg-secondary'))">
                             </span>
                         </div>
                         <div class="d-flex justify-content-between align-items-end">

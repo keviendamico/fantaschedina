@@ -17,10 +17,16 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 
-    <div class="mb-4">
+    <div class="mb-4" th:with="awaiting=${matchday.status.name() == 'AWAITING_RECOVERY'}">
         <a th:href="@{/admin/leagues/{id}/calendar(id=${league.id})}" class="text-muted small">← Calendario</a>
-        <h4 class="mb-0 mt-1 ft-brand-title" th:text="'Inserisci risultati — Giornata ' + ${matchday.number}"></h4>
+        <h4 class="mb-0 mt-1 ft-brand-title"
+            th:text="(${awaiting} ? 'Completa risultati — Giornata ' : 'Inserisci risultati — Giornata ') + ${matchday.number}"></h4>
         <span class="text-muted" th:text="${league.name}"></span>
+
+        <div th:if="${awaiting}" class="alert alert-warning mt-3 mb-0 small">
+            Giornata in attesa del recupero. Le schedine non sono ancora state elaborate e il jackpot
+            è congelato: si sblocca quando inserisci tutti i risultati, recuperi compresi, e confermi.
+        </div>
     </div>
 
     <form th:action="@{/admin/leagues/{lid}/matchdays/{mid}/results(lid=${league.id},mid=${matchday.id})}"

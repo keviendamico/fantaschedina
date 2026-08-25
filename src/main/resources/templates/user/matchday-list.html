@@ -87,7 +87,8 @@
                           th:classappend="${md.status.name() == 'OPEN'} ? 'badge-ft-green' :
                                            (${md.status.name() == 'PROCESSED'} ? 'bg-secondary' :
                                            (${md.status.name() == 'RESULTS_LOADED'} ? 'bg-info text-dark' :
-                                           (${md.status.name() == 'CLOSED'} ? 'badge-ft-orange' : 'bg-warning text-dark')))"
+                                           (${md.status.name() == 'AWAITING_RECOVERY'} ? 'bg-danger' :
+                                           (${md.status.name() == 'CLOSED'} ? 'badge-ft-orange' : 'bg-warning text-dark'))))"
                           th:text="${md.status.label}"></span>
                     <div class="text-muted small mt-1" th:if="${deadlines.containsKey(md.id)}">
                         Scadenza: <span th:text="${#temporals.format(deadlines[md.id], 'dd/MM/yyyy HH:mm')}"></span>

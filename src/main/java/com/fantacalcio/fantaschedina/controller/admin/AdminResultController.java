@@ -36,8 +36,8 @@ public class AdminResultController {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
 
-        if (matchday.getStatus() != MatchdayStatus.CLOSED) {
-            log.warn("form: rejected — matchday {} is not CLOSED (status={})", matchdayId, matchday.getStatus());
+        if (matchday.getStatus() != MatchdayStatus.CLOSED && matchday.getStatus() != MatchdayStatus.AWAITING_RECOVERY) {
+            log.warn("form: rejected — matchday {} does not accept results (status={})", matchdayId, matchday.getStatus());
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }
 
@@ -57,9 +57,32 @@ public class AdminResultController {
         log.info("submit: league {} matchday {} results submitted by admin {}", leagueId, matchdayId, user.getUsername());
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         Matchday matchday = processingService.loadResults(matchdayId, request);
-        log.info("submit: matchday {} processed successfully", matchdayId);
-        redirectAttributes.addFlashAttribute("success",
-                "Risultati giornata " + matchday.getNumber() + " caricati e schedine elaborate.");
+        log.info("submit: matchday {} results saved, status={}", matchdayId, matchday.getStatus());
+        redirectAttributes.addFlashAttribute("success", resultMessage(matchday));
         return "redirect:/admin/leagues/" + leagueId + "/calendar";
+    }
+
+    @PostMapping("/recovery")
+    public String markRecovery(@PathVariable Long leagueId,
+                               @PathVariable Long matchdayId,
+                               @AuthenticationPrincipal UserDetails user,
+                               RedirectAttributes redirectAttributes) {
+        log.info("markRecovery: league {} matchday {} marked as awaiting recovery by admin {}", leagueId, matchdayId, user.getUsername());
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
+        Matchday matchday = processingService.markAwaitingRecovery(matchdayId);
+        redirectAttributes.addFlashAttribute("success",
+                "Giornata " + matchday.getNumber() + " in attesa del recupero. Il jackpot è congelato e la "
+                + "giornata successiva è ora giocabile. Carica i risultati quando i recuperi saranno disputati.");
+        return "redirect:/admin/leagues/" + leagueId + "/calendar";
+    }
+
+    private String resultMessage(Matchday matchday) {
+        // loadResults leaves the matchday RESULTS_LOADED when it stays queued behind an earlier one
+        // awaiting recovery, or PROCESSED when it is elaborated right away.
+        if (matchday.getStatus() == MatchdayStatus.RESULTS_LOADED) {
+            return "Risultati giornata " + matchday.getNumber()
+                    + " caricati. Le schedine saranno elaborate al completamento della giornata precedente in attesa del recupero.";
+        }
+        return "Risultati giornata " + matchday.getNumber() + " caricati e schedine elaborate.";
     }
 }

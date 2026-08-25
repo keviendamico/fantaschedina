@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 
 @Slf4j
@@ -38,13 +37,7 @@ public class UserDashboardService {
         League league = leagueRepository.findById(membership.getLeagueId()).orElseThrow();
         List<Matchday> matchdays = matchdayRepository.findByLeagueIdOrderByNumberAsc(league.getId());
 
-        Matchday current = matchdays.stream()
-                .filter(md -> md.getStatus() == MatchdayStatus.OPEN || md.getStatus() == MatchdayStatus.CLOSED)
-                .findFirst()
-                .or(() -> matchdays.stream()
-                        .filter(md -> md.getStatus() == MatchdayStatus.SCHEDULED)
-                        .min(Comparator.comparingInt(Matchday::getNumber)))
-                .orElse(null);
+        Matchday current = matchdayService.pickCurrent(matchdays);
 
         LocalDateTime deadline = current != null
                 ? matchdayService.effectiveDeadline(current, league.getBetDeadlineMinutes())

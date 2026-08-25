@@ -62,6 +62,8 @@
                         <span th:unless="${slip.isAdminModified}" class="text-muted small">—</span>
                     </td>
                     <td class="text-end">
+                        <a th:href="@{/admin/leagues/{lid}/slips/{sid}(lid=${league.id},sid=${slip.id})}"
+                           class="btn btn-sm btn-outline-secondary">Dettaglio</a>
                         <a th:if="${matchday.status.name() == 'OPEN'}"
                            th:href="@{/admin/leagues/{lid}/slips/{sid}/edit(lid=${league.id},sid=${slip.id})}"
                            class="btn btn-sm btn-outline-primary">Modifica</a>

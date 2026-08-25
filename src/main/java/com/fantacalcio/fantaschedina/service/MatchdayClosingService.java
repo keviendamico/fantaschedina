@@ -3,6 +3,7 @@ package com.fantacalcio.fantaschedina.service;
 import com.fantacalcio.fantaschedina.domain.entity.League;
 import com.fantacalcio.fantaschedina.domain.entity.Matchday;
 import com.fantacalcio.fantaschedina.domain.enums.MatchdayStatus;
+import com.fantacalcio.fantaschedina.repository.JackpotRepository;
 import com.fantacalcio.fantaschedina.repository.LeagueRepository;
 import com.fantacalcio.fantaschedina.repository.MatchdayRepository;
 import com.fantacalcio.fantaschedina.scheduler.MatchdayCloseJob;
@@ -23,6 +24,7 @@ public class MatchdayClosingService {
     private final Scheduler scheduler;
     private final MatchdayRepository matchdayRepository;
     private final LeagueRepository leagueRepository;
+    private final JackpotRepository jackpotRepository;
     private final MatchdayService matchdayService;
     private final AutoSubmitService autoSubmitService;
 
@@ -45,6 +47,14 @@ public class MatchdayClosingService {
         log.debug("closeAndAutoSubmit: invoking autoSubmitMissing for matchday {}", matchdayId);
         autoSubmitService.autoSubmitMissing(matchdayId);
         log.debug("closeAndAutoSubmit: autoSubmitMissing returned for matchday {}", matchdayId);
+
+        // Snapshot taken after the auto-submit charges, so it includes every stake of this matchday.
+        // This is the pot the matchday will distribute, even if its results arrive after later matchdays.
+        jackpotRepository.findByLeagueId(matchday.getLeagueId()).ifPresent(jackpot -> {
+            matchday.setJackpotAtClose(jackpot.getCurrentAmount());
+            matchdayRepository.save(matchday);
+            log.info("closeAndAutoSubmit: matchday {} jackpot snapshot at close = {}", matchdayId, jackpot.getCurrentAmount());
+        });
     }
 
     /**

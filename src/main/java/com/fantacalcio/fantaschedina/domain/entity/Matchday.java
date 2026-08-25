@@ -31,4 +31,6 @@ public class Matchday {
     private MatchdayStatus status;
 
     private LocalDateTime reminderSentAt;
+
+    private Integer jackpotAtClose;
 }

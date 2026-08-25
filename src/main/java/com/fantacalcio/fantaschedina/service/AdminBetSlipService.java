@@ -76,6 +76,14 @@ public class AdminBetSlipService {
                 .toList();
     }
 
+    /** Map matchdayFixtureId → pick for a slip, to render picks alongside their fixture. */
+    @Transactional(readOnly = true)
+    public Map<Long, BetPick> getPicksByFixture(Long betSlipId) {
+        log.debug("getPicksByFixture: slip {}", betSlipId);
+        return betPickRepository.findByBetSlipId(betSlipId).stream()
+                .collect(Collectors.toMap(BetPick::getMatchdayFixtureId, p -> p, (a, b) -> a));
+    }
+
     @Transactional
     public void modifySlip(Long slipId, Long adminUserId, BetSlipRequest request, String note) {
         log.debug("modifySlip: request received for slip {} by admin {}", slipId, adminUserId);

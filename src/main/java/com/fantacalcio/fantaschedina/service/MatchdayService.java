@@ -22,6 +22,12 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class MatchdayService {
 
+    private static final List<MatchdayStatus> CURRENT_PRIORITY = List.of(
+            MatchdayStatus.OPEN,
+            MatchdayStatus.CLOSED,
+            MatchdayStatus.AWAITING_RECOVERY,
+            MatchdayStatus.RESULTS_LOADED);
+
     private final MatchdayRepository matchdayRepository;
     private final MatchdayFixtureRepository matchdayFixtureRepository;
     private final LeagueMembershipRepository leagueMembershipRepository;
@@ -46,6 +52,24 @@ public class MatchdayService {
 
     public List<Matchday> getMatchdays(Long leagueId) {
         return matchdayRepository.findByLeagueIdOrderByNumberAsc(leagueId);
+    }
+
+    /**
+     * The matchday to show on a league card: the one being played if any, otherwise the one still
+     * to be resolved (waiting for a postponed match or for processing), otherwise the next scheduled.
+     * Expects the matchdays ordered by number.
+     */
+    public Matchday pickCurrent(List<Matchday> matchdays) {
+        for (MatchdayStatus status : CURRENT_PRIORITY) {
+            Optional<Matchday> found = matchdays.stream()
+                    .filter(md -> md.getStatus() == status)
+                    .findFirst();
+            if (found.isPresent()) return found.get();
+        }
+        return matchdays.stream()
+                .filter(md -> md.getStatus() == MatchdayStatus.SCHEDULED)
+                .findFirst()
+                .orElse(null);
     }
 
     public Matchday getMatchday(Long matchdayId, Long leagueId) {

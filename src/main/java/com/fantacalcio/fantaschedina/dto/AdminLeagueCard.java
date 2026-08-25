@@ -31,7 +31,10 @@ public class AdminLeagueCard {
         return currentMatchday != null && currentMatchday.getStatus() == MatchdayStatus.OPEN;
     }
 
+    /** True when the matchday is waiting for the admin to load results — fully or after a postponed match. */
     public boolean hasClosedMatchday() {
-        return currentMatchday != null && currentMatchday.getStatus() == MatchdayStatus.CLOSED;
+        return currentMatchday != null
+                && (currentMatchday.getStatus() == MatchdayStatus.CLOSED
+                    || currentMatchday.getStatus() == MatchdayStatus.AWAITING_RECOVERY);
     }
 }

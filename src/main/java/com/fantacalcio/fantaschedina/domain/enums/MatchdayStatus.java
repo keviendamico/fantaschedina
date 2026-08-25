@@ -4,6 +4,7 @@ public enum MatchdayStatus {
     SCHEDULED("In programma"),
     OPEN("Aperta"),
     CLOSED("Chiusa"),
+    AWAITING_RECOVERY("In attesa del recupero"),
     RESULTS_LOADED("Risultati caricati"),
     PROCESSED("Elaborata");
 

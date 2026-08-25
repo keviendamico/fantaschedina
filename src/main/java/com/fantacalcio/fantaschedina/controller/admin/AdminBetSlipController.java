@@ -48,6 +48,27 @@ public class AdminBetSlipController {
         return "admin/leagues/slip-list";
     }
 
+    @GetMapping("/slips/{slipId}")
+    public String slipDetail(@PathVariable Long leagueId,
+                             @PathVariable Long slipId,
+                             @AuthenticationPrincipal UserDetails user,
+                             Model model) {
+        log.debug("slipDetail: league {} slip {}", leagueId, slipId);
+        leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
+        BetSlip slip = adminBetSlipService.getSlip(slipId);
+        Matchday matchday = matchdayService.getMatchday(slip.getMatchdayId(), leagueId);
+        Map<Long, String> teamNames = adminBetSlipService.getTeamNames(leagueId);
+
+        model.addAttribute("league", leagueService.findById(leagueId));
+        model.addAttribute("matchday", matchday);
+        model.addAttribute("slip", slip);
+        model.addAttribute("fixtures", matchdayService.getFixtures(matchday.getId()));
+        model.addAttribute("teamNames", teamNames);
+        model.addAttribute("teamName", teamNames.get(slip.getFantaTeamId()));
+        model.addAttribute("picksByFixture", adminBetSlipService.getPicksByFixture(slipId));
+        return "admin/leagues/slip-detail";
+    }
+
     @GetMapping("/slips/{slipId}/edit")
     public String editForm(@PathVariable Long leagueId,
                            @PathVariable Long slipId,

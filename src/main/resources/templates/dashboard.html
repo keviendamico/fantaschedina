@@ -45,7 +45,8 @@
                                   th:text="${card.currentMatchday.status.label}"
                                   th:classappend="${card.currentMatchday.status.name() == 'OPEN'} ? 'badge-ft-green' :
                                                   (${card.currentMatchday.status.name() == 'CLOSED'} ? 'badge-ft-orange' :
-                                                  'bg-secondary')">
+                                                  (${card.currentMatchday.status.name() == 'AWAITING_RECOVERY'} ? 'bg-danger' :
+                                                  'bg-secondary'))">
                             </span>
                         </div>
                         <div class="fw-semibold" th:text="'Giornata ' + ${card.currentMatchday.number}"></div>
