@@ -56,6 +56,7 @@ public class AdminResultController {
                          RedirectAttributes redirectAttributes) {
         log.info("submit: league {} matchday {} results submitted by admin {}", leagueId, matchdayId, user.getUsername());
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
+        matchdayService.getMatchday(matchdayId, leagueId); // ensure the matchday belongs to this league
         Matchday matchday = processingService.loadResults(matchdayId, request);
         log.info("submit: matchday {} results saved, status={}", matchdayId, matchday.getStatus());
         redirectAttributes.addFlashAttribute("success", resultMessage(matchday));
@@ -69,6 +70,7 @@ public class AdminResultController {
                                RedirectAttributes redirectAttributes) {
         log.info("markRecovery: league {} matchday {} marked as awaiting recovery by admin {}", leagueId, matchdayId, user.getUsername());
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
+        matchdayService.getMatchday(matchdayId, leagueId); // ensure the matchday belongs to this league
         Matchday matchday = processingService.markAwaitingRecovery(matchdayId);
         redirectAttributes.addFlashAttribute("success",
                 "Giornata " + matchday.getNumber() + " in attesa del recupero. Il jackpot è congelato e la "

@@ -76,12 +76,16 @@ public class AdminBetSlipService {
                 .toList();
     }
 
-    /** Map matchdayFixtureId → pick for a slip, to render picks alongside their fixture. */
+    /**
+     * Map matchdayFixtureId → pick for a slip, to render picks alongside their fixture.
+     * No merge function: the "one pick per fixture" invariant must hold, so a duplicate surfaces
+     * loudly here (as it already does on the user side) rather than being silently hidden.
+     */
     @Transactional(readOnly = true)
     public Map<Long, BetPick> getPicksByFixture(Long betSlipId) {
         log.debug("getPicksByFixture: slip {}", betSlipId);
         return betPickRepository.findByBetSlipId(betSlipId).stream()
-                .collect(Collectors.toMap(BetPick::getMatchdayFixtureId, p -> p, (a, b) -> a));
+                .collect(Collectors.toMap(BetPick::getMatchdayFixtureId, p -> p));
     }
 
     @Transactional
