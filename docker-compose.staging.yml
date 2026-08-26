@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /mnt/HC_Volume_106591043:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -37,12 +37,12 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       APP_BASE_URL: ${APP_BASE_URL}
       APP_MAIL_FROM: ${APP_MAIL_FROM}
       SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
       SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
-      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
-      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
       SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/staging
     expose:
       - "8080"
@@ -59,8 +59,10 @@ services:
       - caddy_config:/config
     depends_on:
       - app
+    networks:
+      - default
+      - web
 
 volumes:
-  pgdata:
   caddy_data:
   caddy_config:

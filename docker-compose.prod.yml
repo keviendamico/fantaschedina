@@ -6,13 +6,21 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - /mnt/HC_Volume_106591043:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+
+  mailpit:
+    image: axllent/mailpit:latest
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
 
   app:
     image: kappa9/fantaschedina:${APP_IMAGE_TAG:-1.0.0}
@@ -22,12 +30,38 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file:
-      - .env
+      mailpit:
+        condition: service_started
     environment:
-      SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/prod
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_MAIL_USERNAME: ${SPRING_MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${SPRING_MAIL_PASSWORD}
+      APP_BASE_URL: ${APP_BASE_URL}
+      APP_MAIL_FROM: ${APP_MAIL_FROM}
+      SPRING_MAIL_HOST: ${SPRING_MAIL_HOST}
+      SPRING_MAIL_PORT: ${SPRING_MAIL_PORT}
+      SPRING_FLYWAY_LOCATIONS: classpath:db/migration,classpath:db/staging
+    expose:
+      - "8080"
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - default
+      - web
 
 volumes:
-  pgdata:
+  caddy_data:
+  caddy_config:
