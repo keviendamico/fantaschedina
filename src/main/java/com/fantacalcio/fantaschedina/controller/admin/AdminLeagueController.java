@@ -45,7 +45,7 @@ public class AdminLeagueController {
                          @AuthenticationPrincipal UserDetails user,
                          RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            log.warn("create: rejected — validation errors for league \"{}\"", leagueRequest.getName());
+            log.warn("create: rejected - validation errors for league \"{}\"", leagueRequest.getName());
             return "admin/leagues/form";
         }
         var league = leagueService.create(leagueRequest, userService.getUserId(user.getUsername()));
@@ -91,7 +91,7 @@ public class AdminLeagueController {
                          Model model,
                          RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            log.warn("update: rejected — validation errors for league {}", id);
+            log.warn("update: rejected - validation errors for league {}", id);
             model.addAttribute("leagueId", id);
             return "admin/leagues/form";
         }

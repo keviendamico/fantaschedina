@@ -40,12 +40,12 @@ public class MatchdayService {
      */
     public League getLeagueForMember(Long leagueId, Long userId) {
         if (leagueMembershipRepository.findByLeagueIdAndUserId(leagueId, userId).isEmpty()) {
-            log.warn("getLeagueForMember: rejected — user {} is not a member of league {}", userId, leagueId);
+            log.warn("getLeagueForMember: rejected - user {} is not a member of league {}", userId, leagueId);
             throw new NotLeagueMemberException();
         }
         return leagueRepository.findById(leagueId)
                 .orElseThrow(() -> {
-                    log.warn("getLeagueForMember: rejected — league {} not found", leagueId);
+                    log.warn("getLeagueForMember: rejected - league {} not found", leagueId);
                     return new IllegalArgumentException("Lega non trovata");
                 });
     }
@@ -75,11 +75,11 @@ public class MatchdayService {
     public Matchday getMatchday(Long matchdayId, Long leagueId) {
         Matchday matchday = matchdayRepository.findById(matchdayId)
                 .orElseThrow(() -> {
-                    log.warn("getMatchday: rejected — matchday {} not found", matchdayId);
+                    log.warn("getMatchday: rejected - matchday {} not found", matchdayId);
                     return new MatchdayNotFoundException(matchdayId, leagueId);
                 });
         if (!matchday.getLeagueId().equals(leagueId)) {
-            log.warn("getMatchday: rejected — matchday {} does not belong to league {}", matchdayId, leagueId);
+            log.warn("getMatchday: rejected - matchday {} does not belong to league {}", matchdayId, leagueId);
             throw new MatchdayNotFoundException(matchdayId, leagueId);
         }
         return matchday;

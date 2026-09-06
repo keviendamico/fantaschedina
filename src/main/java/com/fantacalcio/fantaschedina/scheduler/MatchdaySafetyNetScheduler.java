@@ -65,7 +65,7 @@ public class MatchdaySafetyNetScheduler {
                 matchdayClosingService.closeAndAutoSubmit(matchday.getId());
                 log.debug("Safety net: closeAndAutoSubmit completed for matchday {}", matchday.getId());
             } catch (Exception e) {
-                log.error("Safety net: closeAndAutoSubmit FAILED for matchday {} — will retry next tick", matchday.getId(), e);
+                log.error("Safety net: closeAndAutoSubmit FAILED for matchday {} - will retry next tick", matchday.getId(), e);
             }
         }
     }

@@ -45,13 +45,13 @@ public class AdminLeagueMemberService {
     public void adjustMemberBalance(Long membershipId, int delta, String note) {
         log.debug("adjustMemberBalance: membership {} delta {}", membershipId, delta);
         if (delta == 0) {
-            log.warn("adjustMemberBalance: rejected — delta is zero for membership {}", membershipId);
+            log.warn("adjustMemberBalance: rejected - delta is zero for membership {}", membershipId);
             throw new IllegalArgumentException("Il delta non può essere zero.");
         }
 
         LeagueMembership membership = leagueMembershipRepository.findById(membershipId)
                 .orElseThrow(() -> {
-                    log.warn("adjustMemberBalance: rejected — membership {} not found", membershipId);
+                    log.warn("adjustMemberBalance: rejected - membership {} not found", membershipId);
                     return new IllegalArgumentException("Iscrizione non trovata.");
                 });
 
@@ -89,27 +89,27 @@ public class AdminLeagueMemberService {
         String resolvedName = newName != null ? newName.trim() : "";
 
         if (resolvedName.isEmpty()) {
-            log.warn("renameTeam: rejected — empty name for membership {}", membershipId);
+            log.warn("renameTeam: rejected - empty name for membership {}", membershipId);
             throw new IllegalArgumentException("Il nome della squadra non può essere vuoto.");
         }
         if (resolvedName.length() > MAX_TEAM_NAME_LENGTH) {
-            log.warn("renameTeam: rejected — name too long ({} chars) for membership {}", resolvedName.length(), membershipId);
+            log.warn("renameTeam: rejected - name too long ({} chars) for membership {}", resolvedName.length(), membershipId);
             throw new IllegalArgumentException("Il nome della squadra non può superare i " + MAX_TEAM_NAME_LENGTH + " caratteri.");
         }
 
         LeagueMembership membership = leagueMembershipRepository.findById(membershipId)
                 .orElseThrow(() -> {
-                    log.warn("renameTeam: rejected — membership {} not found", membershipId);
+                    log.warn("renameTeam: rejected - membership {} not found", membershipId);
                     return new IllegalArgumentException("Iscrizione non trovata.");
                 });
         if (!membership.getLeagueId().equals(leagueId)) {
-            log.warn("renameTeam: rejected — membership {} does not belong to league {}", membershipId, leagueId);
+            log.warn("renameTeam: rejected - membership {} does not belong to league {}", membershipId, leagueId);
             throw new IllegalArgumentException("Iscrizione non appartenente a questa lega.");
         }
 
         FantaTeam team = fantaTeamRepository.findByLeagueMembershipId(membershipId)
                 .orElseThrow(() -> {
-                    log.warn("renameTeam: rejected — no team for membership {}", membershipId);
+                    log.warn("renameTeam: rejected - no team for membership {}", membershipId);
                     return new IllegalArgumentException("Squadra non trovata.");
                 });
 
@@ -122,7 +122,7 @@ public class AdminLeagueMemberService {
         fantaTeamRepository.findByLeagueIdAndNameIgnoreCase(leagueId, resolvedName)
                 .filter(other -> !other.getId().equals(team.getId()))
                 .ifPresent(other -> {
-                    log.warn("renameTeam: rejected — name \"{}\" already used by team {} in league {}", resolvedName, other.getId(), leagueId);
+                    log.warn("renameTeam: rejected - name \"{}\" already used by team {} in league {}", resolvedName, other.getId(), leagueId);
                     throw new IllegalArgumentException("Esiste già una squadra con questo nome in questa lega.");
                 });
 
@@ -153,7 +153,7 @@ public class AdminLeagueMemberService {
         LeagueMembership membership = leagueMembershipRepository.findById(membershipId)
                 .orElseThrow(() -> new IllegalArgumentException("Iscrizione non trovata."));
         if (!membership.getLeagueId().equals(leagueId)) {
-            log.warn("getMembershipForLeague: rejected — membership {} does not belong to league {}", membershipId, leagueId);
+            log.warn("getMembershipForLeague: rejected - membership {} does not belong to league {}", membershipId, leagueId);
             throw new IllegalArgumentException("Iscrizione non appartenente a questa lega.");
         }
         return membership;

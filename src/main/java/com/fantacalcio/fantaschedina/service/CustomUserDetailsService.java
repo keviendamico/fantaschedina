@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         log.debug("loadUserByUsername: {}", username);
         User user = userRepository.findByUsername(username)
             .orElseThrow(() -> {
-                log.warn("loadUserByUsername: rejected — no user found for \"{}\"", username);
+                log.warn("loadUserByUsername: rejected - no user found for \"{}\"", username);
                 return new UsernameNotFoundException("User not found: " + username);
             });
 

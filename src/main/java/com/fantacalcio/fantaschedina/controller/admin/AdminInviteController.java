@@ -36,7 +36,7 @@ public class AdminInviteController {
                              Model model,
                              RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
-            log.warn("sendInvite: rejected — validation errors for league {} email {}", inviteRequest.getLeagueId(), inviteRequest.getEmail());
+            log.warn("sendInvite: rejected - validation errors for league {} email {}", inviteRequest.getLeagueId(), inviteRequest.getEmail());
             populateLeagueModel(model);
             model.addAttribute("invites", inviteService.findAll());
             return "admin/invites";

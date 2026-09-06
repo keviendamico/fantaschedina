@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FantaTotocalcio — Dettaglio Lega</title>
+    <title>FantaTotocalcio - Dettaglio Lega</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -71,7 +71,7 @@
                         <dt class="col-6">Deadline</dt>
                         <dd class="col-6" th:text="${league.betDeadlineMinutes} + ' min'"></dd>
                         <dt class="col-6">Max squadre</dt>
-                        <dd class="col-6" th:text="${league.maxTeams != null ? league.maxTeams : '—'}"></dd>
+                        <dd class="col-6" th:text="${league.maxTeams != null ? league.maxTeams : '-'}"></dd>
                     </dl>
                 </div>
             </div>
@@ -133,7 +133,7 @@
                                         <input th:if="${row.outcomeType.name() != 'OVER_UNDER'}"
                                                type="hidden" th:field="*{rows[__${i.index}__].overUnderThreshold}">
                                         <span th:if="${row.outcomeType.name() != 'OVER_UNDER'}"
-                                              class="text-muted">—</span>
+                                              class="text-muted">-</span>
                                     </td>
                                 </tr>
                             </tbody>

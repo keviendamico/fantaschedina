@@ -1,5 +1,4 @@
 {
-  "name": "fantaschedina",
   "composePath": "docker-compose.prod.yml",
   "domains": [
     { "domain": "fantatotocalcio.it", "port": 8080, "type": "custom" },

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FantaTotocalcio — Inviti</title>
+    <title>FantaTotocalcio - Inviti</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -32,7 +32,7 @@
                         <div class="mb-3">
                             <label for="leagueId" class="form-label">Lega</label>
                             <select class="form-select" id="leagueId" th:field="*{leagueId}" required>
-                                <option value="">— Seleziona —</option>
+                                <option value="">- Seleziona -</option>
                                 <option th:each="league : ${leagues}"
                                         th:value="${league.id}"
                                         th:text="${league.name + ' (' + league.season + ')'}">

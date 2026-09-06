@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FantaTotocalcio — Dashboard</title>
+    <title>FantaTotocalcio - Dashboard</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body class="ft-page">
@@ -55,7 +55,7 @@
                         <div th:if="${card.effectiveDeadline != null}" class="text-muted small mt-1">
                             <span th:if="${!card.deadlinePassed()}">
                                 Scadenza: <strong th:text="${#temporals.format(card.effectiveDeadline, 'dd/MM HH:mm')}"></strong>
-                                — <span class="countdown fw-bold text-success"
+                                - <span class="countdown fw-bold text-success"
                                         th:data-deadline="${#temporals.format(card.effectiveDeadline, 'yyyy-MM-dd''T''HH:mm:ss')}"></span>
                             </span>
                             <span th:if="${card.deadlinePassed()}" class="text-danger">Deadline scaduta</span>

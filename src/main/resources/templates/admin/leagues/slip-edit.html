@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Modifica schedina — Giornata ' + ${matchday.number}">FantaTotocalcio Admin</title>
+    <title th:text="'Modifica schedina - Giornata ' + ${matchday.number}">FantaTotocalcio Admin</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -45,7 +45,7 @@
                     <select class="form-select form-select-sm mb-2"
                             th:name="'picks[' + ${slot.index} + '].fixtureId'"
                             required>
-                        <option value="">— Seleziona partita —</option>
+                        <option value="">- Seleziona partita -</option>
                         <option th:each="f : ${fixtures}"
                                 th:value="${f.id}"
                                 th:text="${teamNames[f.homeFantaTeamId]} + ' vs ' + ${teamNames[f.awayFantaTeamId]}"

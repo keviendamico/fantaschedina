@@ -37,7 +37,7 @@ public class AdminResultController {
         Matchday matchday = matchdayService.getMatchday(matchdayId, leagueId);
 
         if (matchday.getStatus() != MatchdayStatus.CLOSED && matchday.getStatus() != MatchdayStatus.AWAITING_RECOVERY) {
-            log.warn("form: rejected — matchday {} does not accept results (status={})", matchdayId, matchday.getStatus());
+            log.warn("form: rejected - matchday {} does not accept results (status={})", matchdayId, matchday.getStatus());
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }
 

@@ -45,7 +45,7 @@ public class MatchdayOpeningService {
     }
 
     /**
-     * Trigger 2: called whenever a matchday stops accepting bets — when it is processed, and when its
+     * Trigger 2: called whenever a matchday stops accepting bets - when it is processed, and when its
      * results are loaded (fully or partially) but processing is still pending.
      * Opens the next SCHEDULED matchday with startAt set, if present.
      */
