@@ -14,6 +14,6 @@
     "APP_MAIL_FROM": "noreply@fantatotocalcio.it",
     "SPRING_MAIL_HOST": "smtp-relay.brevo.com",
     "SPRING_MAIL_PORT": "587",
-    "SPRING_FLYWAY_LOCATIONS": "classpath:db/migration,classpath:db/prod"
+    "SPRING_FLYWAY_LOCATIONS": "classpath:db/migration,classpath:db/staging"
   }
 }
