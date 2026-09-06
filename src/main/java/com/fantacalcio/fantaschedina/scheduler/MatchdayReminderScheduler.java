@@ -92,7 +92,7 @@ public class MatchdayReminderScheduler {
                 matchdayRepository.save(matchday);
                 log.debug("Reminder: matchday {} marked reminderSentAt={}", matchday.getId(), now);
             } catch (Exception e) {
-                log.error("Reminder: failed sending reminders for matchday {} — reminderSentAt NOT set, will retry next tick", matchday.getId(), e);
+                log.error("Reminder: failed sending reminders for matchday {} - reminderSentAt NOT set, will retry next tick", matchday.getId(), e);
             }
         }
     }

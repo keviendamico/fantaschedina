@@ -32,7 +32,7 @@ public class MatchdayCloseJob implements Job {
             matchdayClosingService.closeAndAutoSubmit(matchdayId);
             log.debug("MatchdayCloseJob: completed for matchday {}", matchdayId);
         } catch (Exception e) {
-            log.error("MatchdayCloseJob: closeAndAutoSubmit FAILED for matchday {} — safety net will retry", matchdayId, e);
+            log.error("MatchdayCloseJob: closeAndAutoSubmit FAILED for matchday {} - safety net will retry", matchdayId, e);
             throw new JobExecutionException(e);
         }
     }

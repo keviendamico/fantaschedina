@@ -36,20 +36,20 @@ public class InviteController {
 
         // New user flow
         if (invite.getUserId() == null) {
-            log.debug("acceptInvite: invite {} has no user — redirecting to register", invite.getId());
+            log.debug("acceptInvite: invite {} has no user - redirecting to register", invite.getId());
             return "redirect:/register?token=" + token;
         }
 
-        // Existing user flow — must be authenticated
+        // Existing user flow - must be authenticated
         if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            log.debug("acceptInvite: invite {} requires authentication — redirecting to login", invite.getId());
+            log.debug("acceptInvite: invite {} requires authentication - redirecting to login", invite.getId());
             requestCache.saveRequest(request, response);
             return "redirect:/login";
         }
 
         Long currentUserId = userService.getUserId(authentication.getName());
         if (!currentUserId.equals(invite.getUserId())) {
-            log.warn("acceptInvite: rejected — invite {} targets user {} but current user is {}", invite.getId(), invite.getUserId(), currentUserId);
+            log.warn("acceptInvite: rejected - invite {} targets user {} but current user is {}", invite.getId(), invite.getUserId(), currentUserId);
             model.addAttribute("error", "Questo invito non è destinato a te.");
             return "invite-error";
         }

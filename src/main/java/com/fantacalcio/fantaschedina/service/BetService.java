@@ -48,31 +48,31 @@ public class BetService {
         Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
 
         if (matchday.getStatus() != MatchdayStatus.OPEN) {
-            log.warn("submit: rejected — matchday {} is not OPEN (status={})", matchdayId, matchday.getStatus());
+            log.warn("submit: rejected - matchday {} is not OPEN (status={})", matchdayId, matchday.getStatus());
             throw new BetValidationException("La giornata non è aperta alle scommesse.", leagueId, matchdayId);
         }
 
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
         if (deadline != null && AppClock.now().isAfter(deadline)) {
-            log.warn("submit: rejected — deadline {} already passed for matchday {}", deadline, matchdayId);
+            log.warn("submit: rejected - deadline {} already passed for matchday {}", deadline, matchdayId);
             throw new BetValidationException("La scadenza per questa giornata è già passata.", leagueId, matchdayId);
         }
 
         LeagueMembership membership = leagueMembershipRepository
                 .findByLeagueIdAndUserId(leagueId, userId)
                 .orElseThrow(() -> {
-                    log.warn("submit: rejected — user {} is not a member of league {}", userId, leagueId);
+                    log.warn("submit: rejected - user {} is not a member of league {}", userId, leagueId);
                     return new BetValidationException("Non sei membro di questa lega.", leagueId, matchdayId);
                 });
         FantaTeam fantaTeam = fantaTeamRepository
                 .findByLeagueMembershipId(membership.getId())
                 .orElseThrow(() -> {
-                    log.warn("submit: rejected — membership {} has no fanta team", membership.getId());
+                    log.warn("submit: rejected - membership {} has no fanta team", membership.getId());
                     return new BetValidationException("Nessuna squadra trovata per il tuo account.", leagueId, matchdayId);
                 });
 
         if (betSlipRepository.existsByFantaTeamIdAndMatchdayId(fantaTeam.getId(), matchdayId)) {
-            log.warn("submit: rejected — team {} already submitted a slip for matchday {}", fantaTeam.getId(), matchdayId);
+            log.warn("submit: rejected - team {} already submitted a slip for matchday {}", fantaTeam.getId(), matchdayId);
             throw new BetValidationException("Hai già inviato una schedina per questa giornata.", leagueId, matchdayId);
         }
 
@@ -128,7 +128,7 @@ public class BetService {
     private void validatePicks(List<BetPickRequest> picks, List<BetTemplate> templates,
                                Long leagueId, Long matchdayId) {
         if (picks == null || picks.isEmpty()) {
-            log.warn("validatePicks: rejected — no picks submitted (league {} matchday {})", leagueId, matchdayId);
+            log.warn("validatePicks: rejected - no picks submitted (league {} matchday {})", leagueId, matchdayId);
             throw new BetValidationException("La schedina non contiene nessun pronostico.", leagueId, matchdayId);
         }
 
@@ -138,12 +138,12 @@ public class BetService {
 
         for (BetPickRequest pick : picks) {
             if (!validFixtureIds.contains(pick.getFixtureId())) {
-                log.warn("validatePicks: rejected — fixture {} does not belong to matchday {}", pick.getFixtureId(), matchdayId);
+                log.warn("validatePicks: rejected - fixture {} does not belong to matchday {}", pick.getFixtureId(), matchdayId);
                 throw new BetValidationException("Una partita selezionata non appartiene a questa giornata.", leagueId, matchdayId);
             }
             Set<String> valid = OutcomeConstants.VALID_OUTCOMES_SET.get(pick.getOutcomeType());
             if (valid == null || !valid.contains(pick.getPickedOutcome())) {
-                log.warn("validatePicks: rejected — invalid outcome \"{}\" for type {} (fixture {})",
+                log.warn("validatePicks: rejected - invalid outcome \"{}\" for type {} (fixture {})",
                         pick.getPickedOutcome(), pick.getOutcomeType(), pick.getFixtureId());
                 throw new BetValidationException("Esito non valido: " + pick.getPickedOutcome(), leagueId, matchdayId);
             }
@@ -153,11 +153,11 @@ public class BetService {
                 .map(BetPickRequest::getFixtureId)
                 .collect(Collectors.toSet());
         if (pickedFixtureIds.size() < picks.size()) {
-            log.warn("validatePicks: rejected — duplicate fixture picks (matchday {})", matchdayId);
+            log.warn("validatePicks: rejected - duplicate fixture picks (matchday {})", matchdayId);
             throw new BetValidationException("Ogni partita può essere giocata una sola volta.", leagueId, matchdayId);
         }
         if (!pickedFixtureIds.equals(validFixtureIds)) {
-            log.warn("validatePicks: rejected — not all fixtures of matchday {} covered (picked {}, expected {})",
+            log.warn("validatePicks: rejected - not all fixtures of matchday {} covered (picked {}, expected {})",
                     matchdayId, pickedFixtureIds.size(), validFixtureIds.size());
             throw new BetValidationException("Devi giocare tutte le partite della giornata, una per una.", leagueId, matchdayId);
         }
@@ -168,7 +168,7 @@ public class BetService {
         for (BetTemplate template : templates) {
             long actual = pickCounts.getOrDefault(template.getOutcomeType(), 0L);
             if (actual != template.getRequiredCount()) {
-                log.warn("validatePicks: rejected — type {} requires {} pick(s), got {} (matchday {})",
+                log.warn("validatePicks: rejected - type {} requires {} pick(s), got {} (matchday {})",
                         template.getOutcomeType(), template.getRequiredCount(), actual, matchdayId);
                 throw new BetValidationException(
                         "Pronostici di tipo " + template.getOutcomeType().name() +
@@ -180,7 +180,7 @@ public class BetService {
         for (OutcomeType type : pickCounts.keySet()) {
             boolean inTemplate = templates.stream().anyMatch(t -> t.getOutcomeType() == type);
             if (!inTemplate) {
-                log.warn("validatePicks: rejected — outcome type {} not in league {} template", type, leagueId);
+                log.warn("validatePicks: rejected - outcome type {} not in league {} template", type, leagueId);
                 throw new BetValidationException("Tipo di pronostico non previsto: " + type.name(), leagueId, matchdayId);
             }
         }
@@ -224,7 +224,7 @@ public class BetService {
 
         FantaTeam myTeam = matchdayService.getFantaTeam(leagueId, userId).orElse(null);
         if (myTeam == null || !slip.getFantaTeamId().equals(myTeam.getId())) {
-            log.warn("findSlipForUser: rejected — slip {} does not belong to user {} (league {})", slipId, userId, leagueId);
+            log.warn("findSlipForUser: rejected - slip {} does not belong to user {} (league {})", slipId, userId, leagueId);
             throw new SlipNotFoundException(leagueId);
         }
         return slip;

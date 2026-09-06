@@ -97,12 +97,12 @@ public class AdminBetSlipService {
         League league = leagueRepository.findById(matchday.getLeagueId()).orElseThrow();
 
         if (matchday.getStatus() != MatchdayStatus.OPEN) {
-            log.warn("modifySlip: rejected — matchday {} is not OPEN (status={})", matchday.getId(), matchday.getStatus());
+            log.warn("modifySlip: rejected - matchday {} is not OPEN (status={})", matchday.getId(), matchday.getStatus());
             throw new IllegalStateException("La giornata non è più aperta: impossibile modificare la schedina.");
         }
         LocalDateTime deadline = matchdayService.effectiveDeadline(matchday, league.getBetDeadlineMinutes());
         if (deadline != null && AppClock.now().isAfter(deadline)) {
-            log.warn("modifySlip: rejected — deadline {} already passed for matchday {}", deadline, matchday.getId());
+            log.warn("modifySlip: rejected - deadline {} already passed for matchday {}", deadline, matchday.getId());
             throw new IllegalStateException("La deadline è già passata: impossibile modificare la schedina.");
         }
 

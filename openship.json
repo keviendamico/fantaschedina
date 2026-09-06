@@ -1,0 +1,19 @@
+{
+  "composePath": "docker-compose.prod.yml",
+  "domains": [
+    { "domain": "fantatotocalcio.it", "port": 8080, "type": "custom" },
+    { "domain": "www.fantatotocalcio.it", "port": 8080, "type": "custom" }
+  ],
+  "env": {
+    "POSTGRES_DB": "fantaschedina",
+    "POSTGRES_USER": "fantaschedina",
+    "SPRING_PROFILES_ACTIVE": "prod",
+    "SPRING_DATASOURCE_URL": "jdbc:postgresql://db:5432/fantaschedina",
+    "SPRING_DATASOURCE_USERNAME": "fantaschedina",
+    "APP_BASE_URL": "https://fantatotocalcio.it",
+    "APP_MAIL_FROM": "noreply@fantatotocalcio.it",
+    "SPRING_MAIL_HOST": "smtp-relay.brevo.com",
+    "SPRING_MAIL_PORT": "587",
+    "SPRING_FLYWAY_LOCATIONS": "classpath:db/migration,classpath:db/prod"
+  }
+}

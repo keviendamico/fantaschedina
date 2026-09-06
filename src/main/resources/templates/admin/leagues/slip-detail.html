@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Schedina — Giornata ' + ${matchday.number}">FantaTotocalcio Admin</title>
+    <title th:text="'Schedina - Giornata ' + ${matchday.number}">FantaTotocalcio Admin</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -69,12 +69,12 @@
                                               (${pick.isCorrect == true} ? 'bg-success' : 'bg-danger')"
                               th:text="${pick.pickedOutcome}">
                         </span>
-                        <span th:unless="${pick != null}" class="text-muted">—</span>
+                        <span th:unless="${pick != null}" class="text-muted">-</span>
                     </td>
                     <td th:if="${slip.status.name() != 'PENDING'}" class="text-center">
                         <span th:if="${pick?.isCorrect == true}"  class="text-success fw-bold">✓</span>
                         <span th:if="${pick?.isCorrect == false}" class="text-danger fw-bold">✗</span>
-                        <span th:if="${pick == null or pick.isCorrect == null}" class="text-muted">—</span>
+                        <span th:if="${pick == null or pick.isCorrect == null}" class="text-muted">-</span>
                     </td>
                 </tr>
             </tbody>

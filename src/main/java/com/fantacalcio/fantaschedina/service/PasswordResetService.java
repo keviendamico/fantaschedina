@@ -59,11 +59,11 @@ public class PasswordResetService {
             .orElseThrow(() -> new InvalidPasswordResetException("Link non valido o inesistente"));
 
         if (resetToken.getStatus() == PasswordResetStatus.USED) {
-            log.warn("findValidToken: rejected — token for user {} already used", resetToken.getUserId());
+            log.warn("findValidToken: rejected - token for user {} already used", resetToken.getUserId());
             throw new InvalidPasswordResetException("Questo link è già stato utilizzato");
         }
         if (resetToken.getStatus() == PasswordResetStatus.EXPIRED || resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            log.warn("findValidToken: rejected — token for user {} expired", resetToken.getUserId());
+            log.warn("findValidToken: rejected - token for user {} expired", resetToken.getUserId());
             throw new InvalidPasswordResetException("Questo link è scaduto");
         }
         return resetToken;

@@ -63,7 +63,7 @@ public class PasswordResetController {
         }
 
         if (result.hasErrors()) {
-            log.warn("resetPassword: rejected — validation errors");
+            log.warn("resetPassword: rejected - validation errors");
             model.addAttribute("token", token);
             return "reset-password";
         }

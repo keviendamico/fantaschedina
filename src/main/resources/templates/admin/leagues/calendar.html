@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FantaTotocalcio — Calendario</title>
+    <title>FantaTotocalcio - Calendario</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -198,7 +198,7 @@
                                     <div class="col-sm-5">
                                         <label class="form-label form-label-sm mb-1">Casa</label>
                                         <select class="form-select form-select-sm" name="homeTeamId" required>
-                                            <option value="">— Squadra —</option>
+                                            <option value="">- Squadra -</option>
                                             <option th:each="entry : ${teamNames}"
                                                     th:value="${entry.key}"
                                                     th:text="${entry.value}"></option>
@@ -207,7 +207,7 @@
                                     <div class="col-sm-5">
                                         <label class="form-label form-label-sm mb-1">Trasferta</label>
                                         <select class="form-select form-select-sm" name="awayTeamId" required>
-                                            <option value="">— Squadra —</option>
+                                            <option value="">- Squadra -</option>
                                             <option th:each="entry : ${teamNames}"
                                                     th:value="${entry.key}"
                                                     th:text="${entry.value}"></option>

@@ -57,7 +57,7 @@ public class AdminCalendarController {
                             RedirectAttributes redirectAttributes) throws IOException {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         if (file.isEmpty()) {
-            log.warn("importCsv: rejected — empty file for league {}", leagueId);
+            log.warn("importCsv: rejected - empty file for league {}", leagueId);
             redirectAttributes.addFlashAttribute("error", "Seleziona un file CSV");
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }
@@ -83,7 +83,7 @@ public class AdminCalendarController {
         leagueService.findByIdForAdmin(leagueId, userService.getUserId(user.getUsername()));
         byte[] csvBytes = (byte[]) session.getAttribute(SESSION_KEY);
         if (csvBytes == null) {
-            log.warn("confirmImport: rejected — session expired for league {}", leagueId);
+            log.warn("confirmImport: rejected - session expired for league {}", leagueId);
             redirectAttributes.addFlashAttribute("error", "Sessione scaduta, ricarica il CSV");
             return "redirect:/admin/leagues/" + leagueId + "/calendar";
         }

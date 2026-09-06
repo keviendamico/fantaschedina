@@ -15,12 +15,12 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    // Called on nearly every request via ControllerAdvice-free resolution — no per-call debug log
+    // Called on nearly every request via ControllerAdvice-free resolution - no per-call debug log
     // to avoid flooding; the failure branch below is the actually interesting signal.
     public Long getUserId(String username) {
         return userRepository.findByUsername(username)
             .orElseThrow(() -> {
-                log.error("getUserId: authenticated user \"{}\" not found in database — inconsistent security state", username);
+                log.error("getUserId: authenticated user \"{}\" not found in database - inconsistent security state", username);
                 return new IllegalStateException("Utente autenticato non trovato nel database: " + username);
             })
             .getId();
@@ -29,7 +29,7 @@ public class UserService {
     public User getById(Long id) {
         return userRepository.findById(id)
             .orElseThrow(() -> {
-                log.error("getById: user {} not found in database — inconsistent state", id);
+                log.error("getById: user {} not found in database - inconsistent state", id);
                 return new IllegalStateException("Utente non trovato: " + id);
             });
     }
@@ -48,7 +48,7 @@ public class UserService {
         log.debug("adminUpdateUser: user {} email {}", userId, email);
         User user = getById(userId);
         if (!user.getEmail().equalsIgnoreCase(email) && userRepository.existsByEmail(email)) {
-            log.warn("adminUpdateUser: rejected — email \"{}\" already in use", email);
+            log.warn("adminUpdateUser: rejected - email \"{}\" already in use", email);
             throw new IllegalArgumentException("Esiste già un utente con questa email.");
         }
         user.setEmail(email);

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'FantaTotocalcio — ' + ${league.name} + ' — Componenti'">FantaTotocalcio</title>
+    <title th:text="'FantaTotocalcio - ' + ${league.name} + ' - Componenti'">FantaTotocalcio</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -25,7 +25,7 @@
     <div class="mb-4 d-flex justify-content-between align-items-end">
         <div>
             <a th:href="@{/admin/leagues/{id}(id=${league.id})}" class="text-muted small">← Dettaglio lega</a>
-            <h4 class="mb-0 mt-1 ft-brand-title" th:text="${league.name} + ' — Componenti'"></h4>
+            <h4 class="mb-0 mt-1 ft-brand-title" th:text="${league.name} + ' - Componenti'"></h4>
             <span class="text-muted" th:text="${league.season}"></span>
         </div>
         <span class="text-muted small" th:text="${#lists.size(members)} + ' iscritti'"></span>
@@ -51,7 +51,7 @@
                     <tr th:each="row : ${members}">
                         <td th:text="${row.user().username}"></td>
                         <td class="text-muted small"
-                            th:text="${row.fantaTeam() != null ? row.fantaTeam().name : '—'}"></td>
+                            th:text="${row.fantaTeam() != null ? row.fantaTeam().name : '-'}"></td>
                         <td class="text-end fw-semibold"
                             th:text="${row.membership().balance} + ' cr'"></td>
                         <td class="text-end">
@@ -176,8 +176,8 @@
                         <td class="text-muted small"
                             th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm')}"></td>
                         <td th:text="${log.type.label}"></td>
-                        <td class="text-end" th:text="${log.amount != null ? log.amount + ' cr' : '—'}"></td>
-                        <td class="text-muted small" th:text="${log.note != null ? log.note : '—'}"></td>
+                        <td class="text-end" th:text="${log.amount != null ? log.amount + ' cr' : '-'}"></td>
+                        <td class="text-muted small" th:text="${log.note != null ? log.note : '-'}"></td>
                     </tr>
                 </tbody>
             </table>

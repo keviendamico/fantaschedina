@@ -36,7 +36,7 @@ public class RegisterController {
         }
 
         if (result.hasErrors()) {
-            log.warn("register: rejected — validation errors for username \"{}\"", registerRequest.getUsername());
+            log.warn("register: rejected - validation errors for username \"{}\"", registerRequest.getUsername());
             model.addAttribute("token", token);
             return "register";
         }

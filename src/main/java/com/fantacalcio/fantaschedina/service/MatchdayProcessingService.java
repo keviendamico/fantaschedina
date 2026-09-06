@@ -40,7 +40,7 @@ public class MatchdayProcessingService {
     private Matchday requireResultLoadable(Long matchdayId) {
         Matchday matchday = matchdayRepository.findById(matchdayId).orElseThrow();
         if (matchday.getStatus() != MatchdayStatus.CLOSED && matchday.getStatus() != MatchdayStatus.AWAITING_RECOVERY) {
-            log.warn("requireResultLoadable: rejected — matchday {} does not accept results (status={})", matchdayId, matchday.getStatus());
+            log.warn("requireResultLoadable: rejected - matchday {} does not accept results (status={})", matchdayId, matchday.getStatus());
             throw new IllegalStateException("La giornata non accetta il caricamento dei risultati.");
         }
         return matchday;
@@ -49,7 +49,7 @@ public class MatchdayProcessingService {
     /**
      * Marks a matchday as awaiting a postponed match: the next matchday opens right away, while this
      * one's slips stay unprocessed and the jackpot frozen until its results are loaded. No score is
-     * required here — the admin loads them later with {@link #loadResults}.
+     * required here - the admin loads them later with {@link #loadResults}.
      */
     @Transactional
     public Matchday markAwaitingRecovery(Long matchdayId) {
@@ -72,7 +72,7 @@ public class MatchdayProcessingService {
 
         for (FixtureResultRequest f : request.getFixtures()) {
             if (f.getHomeScore() == null || f.getAwayScore() == null) {
-                log.warn("loadResults: rejected — missing score for fixture {} in matchday {}", f.getFixtureId(), matchdayId);
+                log.warn("loadResults: rejected - missing score for fixture {} in matchday {}", f.getFixtureId(), matchdayId);
                 throw new IllegalArgumentException("Inserisci tutti i risultati prima di confermare.");
             }
         }
@@ -117,7 +117,7 @@ public class MatchdayProcessingService {
 
         for (Matchday matchday : queued) {
             if (!isPreviousProcessed(matchday)) {
-                log.info("processPending: matchday {} (number {}) stays queued — a previous matchday is not processed yet",
+                log.info("processPending: matchday {} (number {}) stays queued - a previous matchday is not processed yet",
                         matchday.getId(), matchday.getNumber());
                 break;
             }
@@ -135,7 +135,7 @@ public class MatchdayProcessingService {
             return;
         }
         if (!isPreviousProcessed(matchday)) {
-            log.warn("process: matchday {} skipped — a previous matchday is not processed yet", matchdayId);
+            log.warn("process: matchday {} skipped - a previous matchday is not processed yet", matchdayId);
             return;
         }
 
@@ -191,7 +191,7 @@ public class MatchdayProcessingService {
         int snapshot = matchday.getJackpotAtClose() != null ? matchday.getJackpotAtClose() : jackpot.getCurrentAmount();
         int pot = Math.min(snapshot, jackpot.getCurrentAmount());
         if (pot < snapshot) {
-            log.info("process: matchday {} pot capped at {} (snapshot {}) — an earlier matchday has been paid out meanwhile",
+            log.info("process: matchday {} pot capped at {} (snapshot {}) - an earlier matchday has been paid out meanwhile",
                     matchdayId, pot, snapshot);
         }
 

@@ -42,7 +42,7 @@ public class CalendarService {
         log.debug("importCsv: league {} overwrite={}", leagueId, overwrite);
         leagueRepository.findById(leagueId)
             .orElseThrow(() -> {
-                log.warn("importCsv: rejected — league {} not found", leagueId);
+                log.warn("importCsv: rejected - league {} not found", leagueId);
                 return new IllegalArgumentException("Lega non trovata");
             });
 
@@ -86,7 +86,7 @@ public class CalendarService {
 
             String header = reader.readLine();
             if (header == null || !header.trim().equals("matchday_number,home_team,away_team")) {
-                log.warn("parseCsv: rejected — invalid CSV header: \"{}\"", header);
+                log.warn("parseCsv: rejected - invalid CSV header: \"{}\"", header);
                 throw new IllegalArgumentException(
                     "Intestazione CSV non valida. Attesa: matchday_number,home_team,away_team");
             }
@@ -111,12 +111,12 @@ public class CalendarService {
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (Exception e) {
-            log.warn("parseCsv: rejected — error reading CSV file", e);
+            log.warn("parseCsv: rejected - error reading CSV file", e);
             throw new IllegalArgumentException("Errore nella lettura del file CSV");
         }
 
         if (!errors.isEmpty()) {
-            log.warn("parseCsv: rejected — {} row error(s): {}", errors.size(), errors);
+            log.warn("parseCsv: rejected - {} row error(s): {}", errors.size(), errors);
             throw new IllegalArgumentException("Errori nel CSV: " + String.join("; ", errors));
         }
 
@@ -128,7 +128,7 @@ public class CalendarService {
             }
         }
         if (!unknown.isEmpty()) {
-            log.warn("parseCsv: rejected — unknown team(s): {}", unknown);
+            log.warn("parseCsv: rejected - unknown team(s): {}", unknown);
             throw new IllegalArgumentException(
                 "Squadre non trovate nella lega: " + String.join(", ", unknown));
         }
@@ -160,12 +160,12 @@ public class CalendarService {
         log.debug("scheduleMatchday: matchday {} startAt={}", matchdayId, request.getStartAt());
         Matchday matchday = matchdayRepository.findById(matchdayId)
             .orElseThrow(() -> {
-                log.warn("scheduleMatchday: rejected — matchday {} not found", matchdayId);
+                log.warn("scheduleMatchday: rejected - matchday {} not found", matchdayId);
                 return new IllegalArgumentException("Giornata non trovata");
             });
 
         if (matchday.getStatus() != MatchdayStatus.SCHEDULED) {
-            log.warn("scheduleMatchday: rejected — matchday {} is not SCHEDULED (status={})", matchdayId, matchday.getStatus());
+            log.warn("scheduleMatchday: rejected - matchday {} is not SCHEDULED (status={})", matchdayId, matchday.getStatus());
             throw new IllegalStateException(
                 "Le date possono essere modificate solo su giornate in stato SCHEDULED");
         }
@@ -182,11 +182,11 @@ public class CalendarService {
         log.debug("addMatchday: league {} number {}", leagueId, number);
         leagueRepository.findById(leagueId)
             .orElseThrow(() -> {
-                log.warn("addMatchday: rejected — league {} not found", leagueId);
+                log.warn("addMatchday: rejected - league {} not found", leagueId);
                 return new IllegalArgumentException("Lega non trovata");
             });
         if (matchdayRepository.findByLeagueIdAndNumber(leagueId, number).isPresent()) {
-            log.warn("addMatchday: rejected — matchday {} already exists for league {}", number, leagueId);
+            log.warn("addMatchday: rejected - matchday {} already exists for league {}", number, leagueId);
             throw new IllegalArgumentException("Giornata " + number + " già esistente");
         }
         Matchday matchday = matchdayRepository.save(Matchday.builder()
@@ -202,31 +202,31 @@ public class CalendarService {
         log.debug("addFixture: league {} matchday {} home {} away {}", leagueId, matchdayId, homeTeamId, awayTeamId);
         var league = leagueRepository.findById(leagueId)
             .orElseThrow(() -> {
-                log.warn("addFixture: rejected — league {} not found", leagueId);
+                log.warn("addFixture: rejected - league {} not found", leagueId);
                 return new IllegalArgumentException("Lega non trovata");
             });
         Matchday matchday = matchdayRepository.findById(matchdayId)
             .orElseThrow(() -> {
-                log.warn("addFixture: rejected — matchday {} not found", matchdayId);
+                log.warn("addFixture: rejected - matchday {} not found", matchdayId);
                 return new IllegalArgumentException("Giornata non trovata");
             });
         if (!matchday.getLeagueId().equals(leagueId)) {
-            log.warn("addFixture: rejected — matchday {} does not belong to league {}", matchdayId, leagueId);
+            log.warn("addFixture: rejected - matchday {} does not belong to league {}", matchdayId, leagueId);
             throw new IllegalArgumentException("La giornata non appartiene a questa lega");
         }
         if (matchday.getStatus() != MatchdayStatus.SCHEDULED) {
-            log.warn("addFixture: rejected — matchday {} is not SCHEDULED (status={})", matchdayId, matchday.getStatus());
+            log.warn("addFixture: rejected - matchday {} is not SCHEDULED (status={})", matchdayId, matchday.getStatus());
             throw new IllegalStateException("Impossibile aggiungere partite a una giornata non in stato SCHEDULED");
         }
         if (homeTeamId.equals(awayTeamId)) {
-            log.warn("addFixture: rejected — home and away team are the same ({})", homeTeamId);
+            log.warn("addFixture: rejected - home and away team are the same ({})", homeTeamId);
             throw new IllegalArgumentException("La squadra di casa e quella in trasferta devono essere diverse");
         }
         if (league.getMaxTeams() != null) {
             int maxFixtures = league.getMaxTeams() / 2;
             long fixtureCount = matchdayFixtureRepository.countByMatchdayId(matchdayId);
             if (fixtureCount >= maxFixtures) {
-                log.warn("addFixture: rejected — matchday {} reached max fixtures ({}/{})", matchdayId, fixtureCount, maxFixtures);
+                log.warn("addFixture: rejected - matchday {} reached max fixtures ({}/{})", matchdayId, fixtureCount, maxFixtures);
                 throw new IllegalStateException(
                     "Numero massimo di partite per giornata raggiunto (" + maxFixtures + "/" + maxFixtures + ")");
             }
@@ -234,13 +234,13 @@ public class CalendarService {
         fantaTeamRepository.findById(homeTeamId)
             .filter(t -> t.getLeagueId().equals(leagueId))
             .orElseThrow(() -> {
-                log.warn("addFixture: rejected — home team {} not valid for league {}", homeTeamId, leagueId);
+                log.warn("addFixture: rejected - home team {} not valid for league {}", homeTeamId, leagueId);
                 return new IllegalArgumentException("Squadra di casa non valida");
             });
         fantaTeamRepository.findById(awayTeamId)
             .filter(t -> t.getLeagueId().equals(leagueId))
             .orElseThrow(() -> {
-                log.warn("addFixture: rejected — away team {} not valid for league {}", awayTeamId, leagueId);
+                log.warn("addFixture: rejected - away team {} not valid for league {}", awayTeamId, leagueId);
                 return new IllegalArgumentException("Squadra in trasferta non valida");
             });
 
@@ -256,12 +256,12 @@ public class CalendarService {
         log.debug("deleteLastMatchday: league {}", leagueId);
         List<Matchday> matchdays = matchdayRepository.findByLeagueIdOrderByNumberAsc(leagueId);
         if (matchdays.isEmpty()) {
-            log.warn("deleteLastMatchday: rejected — league {} has no matchdays", leagueId);
+            log.warn("deleteLastMatchday: rejected - league {} has no matchdays", leagueId);
             throw new IllegalArgumentException("Nessuna giornata da eliminare");
         }
         Matchday last = matchdays.getLast();
         if (last.getStatus() != MatchdayStatus.SCHEDULED) {
-            log.warn("deleteLastMatchday: rejected — matchday {} is not SCHEDULED (status={})", last.getId(), last.getStatus());
+            log.warn("deleteLastMatchday: rejected - matchday {} is not SCHEDULED (status={})", last.getId(), last.getStatus());
             throw new IllegalStateException("Solo l'ultima giornata in stato SCHEDULED può essere eliminata");
         }
         matchdayFixtureRepository.deleteByMatchdayId(last.getId());

@@ -51,7 +51,7 @@ public class LeagueService {
     public League findById(Long id) {
         return leagueRepository.findById(id)
             .orElseThrow(() -> {
-                log.warn("findById: rejected — league {} not found", id);
+                log.warn("findById: rejected - league {} not found", id);
                 return new IllegalArgumentException("Lega non trovata: " + id);
             });
     }
@@ -60,7 +60,7 @@ public class LeagueService {
     public League findByIdForAdmin(Long id, Long adminUserId) {
         League league = findById(id);
         if (!league.getCreatedByUserId().equals(adminUserId)) {
-            log.warn("findByIdForAdmin: rejected — league {} not owned by admin {}", id, adminUserId);
+            log.warn("findByIdForAdmin: rejected - league {} not owned by admin {}", id, adminUserId);
             throw new IllegalArgumentException("Non hai accesso a questa lega.");
         }
         return league;
@@ -110,11 +110,11 @@ public class LeagueService {
         log.debug("activate: league {}", id);
         League league = findById(id);
         if (league.getStatus() != LeagueStatus.SETUP) {
-            log.warn("activate: rejected — league {} is not SETUP (status={})", id, league.getStatus());
+            log.warn("activate: rejected - league {} is not SETUP (status={})", id, league.getStatus());
             throw new IllegalStateException("Solo una lega in stato SETUP può essere attivata");
         }
         if (matchdayRepository.findByLeagueIdOrderByNumberAsc(id).isEmpty()) {
-            log.warn("activate: rejected — league {} has no calendar loaded", id);
+            log.warn("activate: rejected - league {} has no calendar loaded", id);
             throw new IllegalStateException("Non è possibile attivare la lega: carica prima il calendario.");
         }
         league.setStatus(LeagueStatus.ACTIVE);
@@ -126,7 +126,7 @@ public class LeagueService {
         log.debug("close: league {}", id);
         League league = findById(id);
         if (league.getStatus() == LeagueStatus.CLOSED) {
-            log.warn("close: rejected — league {} already CLOSED", id);
+            log.warn("close: rejected - league {} already CLOSED", id);
             throw new IllegalStateException("La lega è già chiusa");
         }
         LeagueStatus previousStatus = league.getStatus();
@@ -139,7 +139,7 @@ public class LeagueService {
     public Jackpot getJackpot(Long leagueId) {
         return jackpotRepository.findByLeagueId(leagueId)
             .orElseThrow(() -> {
-                log.warn("getJackpot: rejected — no jackpot for league {}", leagueId);
+                log.warn("getJackpot: rejected - no jackpot for league {}", leagueId);
                 return new IllegalArgumentException("Jackpot non trovato per la lega: " + leagueId);
             });
     }
@@ -147,12 +147,12 @@ public class LeagueService {
     public void adjustJackpot(Long leagueId, int newAmount) {
         log.debug("adjustJackpot: league {} newAmount {}", leagueId, newAmount);
         if (newAmount < 0) {
-            log.warn("adjustJackpot: rejected — negative amount {} for league {}", newAmount, leagueId);
+            log.warn("adjustJackpot: rejected - negative amount {} for league {}", newAmount, leagueId);
             throw new IllegalArgumentException("Il jackpot non può essere negativo.");
         }
         Jackpot jackpot = jackpotRepository.findByLeagueId(leagueId)
             .orElseThrow(() -> {
-                log.warn("adjustJackpot: rejected — no jackpot for league {}", leagueId);
+                log.warn("adjustJackpot: rejected - no jackpot for league {}", leagueId);
                 return new IllegalArgumentException("Jackpot non trovato.");
             });
         int previousAmount = jackpot.getCurrentAmount();

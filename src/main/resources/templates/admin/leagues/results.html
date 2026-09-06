@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="'Risultati — Giornata ' + ${matchday.number}">FantaTotocalcio Admin</title>
+    <title th:text="'Risultati - Giornata ' + ${matchday.number}">FantaTotocalcio Admin</title>
     <div th:replace="~{fragments/head-assets :: assets}"></div>
 </head>
 <body>
@@ -20,7 +20,7 @@
     <div class="mb-4" th:with="awaiting=${matchday.status.name() == 'AWAITING_RECOVERY'}">
         <a th:href="@{/admin/leagues/{id}/calendar(id=${league.id})}" class="text-muted small">← Calendario</a>
         <h4 class="mb-0 mt-1 ft-brand-title"
-            th:text="(${awaiting} ? 'Completa risultati — Giornata ' : 'Inserisci risultati — Giornata ') + ${matchday.number}"></h4>
+            th:text="(${awaiting} ? 'Completa risultati - Giornata ' : 'Inserisci risultati - Giornata ') + ${matchday.number}"></h4>
         <span class="text-muted" th:text="${league.name}"></span>
 
         <div th:if="${awaiting}" class="alert alert-warning mt-3 mb-0 small">
